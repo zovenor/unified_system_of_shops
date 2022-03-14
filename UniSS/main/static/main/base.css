@@ -1,0 +1,39 @@
+body{
+    color: #555;
+    padding: 0;
+    margin: 0;
+}
+.link{
+    text-decoration: none;
+    color: #555;
+    transition-duration: .5s;
+    padding: 20px;
+    background-color: lavender;
+    border-radius: 30px;
+    margin: 10px;
+}
+.link:hover{
+    opacity: 60%;
+}
+.block_link{
+    width: 400px;
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+}
+.block_element{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.section_of_blocks{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+    min-height: 100vh;
+    width: 100vw;
+}

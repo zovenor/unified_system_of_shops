@@ -1,0 +1,20 @@
+{% extends 'main/base.html' %}
+
+{% load static %}
+
+{% block title %}Shop chains{% endblock %}
+
+{% block content %}
+
+    <link rel="stylesheet" href="{% static 'main/chains.css' %}">
+
+    <section class="section_of_blocks">
+        <h1>Chains</h1>
+        <div class="block_element">
+            {% for chain in chains %}
+                <a href="/shops?chain={{ chain.unique_name }}" class="chain block_link link">{{ chain.name }}</a>
+            {% endfor %}
+        </div>
+    </section>
+
+{% endblock %}

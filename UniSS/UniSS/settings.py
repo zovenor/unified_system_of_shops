@@ -37,8 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'location_field.apps.DefaultConfig',
+    'rest_framework',
 
-    'shops',
+    'main',
+    'API',
 ]
 
 MIDDLEWARE = [
@@ -122,13 +124,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOCATION_FIELD_PATH = STATIC_URL + 'location_field'
 
+MAPBOX_TOKEN = 'pk.eyJ1IjoiYWxleGFuZHJyIiwiYSI6ImNrZTFlYnlrajF0eHoyenFpdHo3OGp3dGIifQ.2dYVtvmQFXF7omn8cXYAow'
+
 LOCATION_FIELD = {
     'map.provider': 'mapbox',
     'map.zoom': 13,
 
     # Mapbox
-    'provider.mapbox.access_token': 'pk.eyJ1IjoiYWxleGFuZHJyIiwiYSI6ImNrZTFlYnlrajF0eHoyenFpdHo3OGp3dGIifQ.2dYVtvmQFXF7omn8cXYAow',
+    'provider.mapbox.access_token': MAPBOX_TOKEN,
     'provider.mapbox.max_zoom': 18,
     'provider.mapbox.id': 'mapbox.streets',
 
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
 }

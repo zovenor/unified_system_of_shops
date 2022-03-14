@@ -1,0 +1,32 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Shops{% endblock %}
+
+{% load static %}
+
+{% block content %}
+
+    <link rel="stylesheet" href="{% static 'main/shops.css' %}">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.js"></script>
+
+    <script>
+        const MAPBOX_TOKEN = "{{ mapbox_token }}";
+    </script>
+
+    <section class="section_of_blocks shops">
+        <h1>Shops</h1>
+        {% for shop in shops %}
+            <div class="block_elements">
+                <a href="/chains/{{ shop.chain.unique_name }}/shop{{ shop.id }}" class="shop block_link link">
+                    <b class="shop_name">{{ shop.chain }}</b>
+                    <p class="shop_location">{{ shop.location }}</p>
+                </a>
+            </div>
+        {% endfor %}
+    </section>
+
+    <section class="map" id="map"></section>
+    <script src="{% static 'main/js/map.js' %}"></script>
+
+{% endblock %}

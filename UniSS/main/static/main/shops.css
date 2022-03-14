@@ -1,0 +1,10 @@
+body{
+    display: flex;
+}
+.shops{
+    width: 30vw;
+}
+.map{
+    width: 70vw;
+    height: 100vh;
+}
