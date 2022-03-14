@@ -20,7 +20,7 @@
             <div class="block_elements">
                 <a href="/chains/{{ shop.chain.unique_name }}/shop{{ shop.id }}" class="shop block_link link">
                     <b class="shop_name">{{ shop.chain }}</b>
-                    <p class="shop_location">{{ shop.location }}</p>
+                    <p class="shop_location">{{ shop.lat }} {{ shop.lng }}</p>
                 </a>
             </div>
         {% endfor %}

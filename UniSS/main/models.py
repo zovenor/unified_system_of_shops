@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from location_field.models.plain import PlainLocationField
 
 
 class ShopChain(models.Model):
@@ -16,7 +15,8 @@ class ShopChain(models.Model):
 class Shop(models.Model):
     chain = models.ForeignKey(ShopChain, on_delete=models.CASCADE)
     managers = models.ManyToManyField(User)
-    location = PlainLocationField()
+    lat = models.FloatField()
+    lng = models.FloatField()
 
     def __str__(self):
         return f'{self.chain.name} shop{self.id}'
@@ -26,8 +26,8 @@ class Shop(models.Model):
         your_lng = your_location[1]
         __degree__ = 111.134861111
 
-        lat = float(self.location.split(',')[0])
-        lng = float(self.location.split(',')[1])
+        lat = self.lat
+        lng = self.lng
 
         distance = ((your_lng - lng) ** 2 + (your_lat - lat) ** 2) ** (1.0 / 2) * __degree__
 
