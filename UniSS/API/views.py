@@ -29,9 +29,10 @@ def defaultResponse():
     return Response(None, status=status.HTTP_204_NO_CONTENT)
 
 
-def exceptionResponse(e, data):
-    data['message'] = f'[EXCEPTION] {str(e)}'
-    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+def exceptionResponse(e):
+    return Response({
+            'message ': f'[EXCEPTION] {str(e)}',
+    }, status=status.HTTP_400_BAD_REQUEST)
 
 
 def user_is_authenticated(func):
@@ -49,8 +50,8 @@ def user_is_authenticated(func):
 class GetShopAroundView(APIView):
     @app_permissions
     def get(self, request):
-        data = {}
         try:
+            data = {}
             shops = None
             data['shoos'] = shops
             if 'lat' in request.headers and 'lng' in request.headers:
@@ -66,15 +67,15 @@ class GetShopAroundView(APIView):
                                                         radius=float(request.headers['radius'])), many=True).data
                 data['shops'] = shops
         except Exception as e:
-            return exceptionResponse(e, data)
+            return exceptionResponse(e)
         return defaultResponse()
 
 
 class TokenView(APIView):
     @app_permissions
     def post(self, request):
-        data = {}
         try:
+            data = {}
             if 'username' not in request.data:
                 data['message'] = "Username is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -97,15 +98,15 @@ class TokenView(APIView):
 
             return Response(data)
         except Exception as e:
-            return exceptionResponse(e, data)
+            return exceptionResponse(e)
         return defaultResponse()
 
 
 class ShopsView(APIView):
     @app_permissions
     def get(self, request):
-        data = {}
         try:
+            data = {}
             shops = Shop.objects.all()
             data['shops'] = ShopSerializer(shops, many=True)
             if 'chain' in request.headers:
@@ -146,14 +147,14 @@ class ShopsView(APIView):
             return Response(data)
         except Exception as e:
             del data['shops']
-            return exceptionResponse(e, data)
+            return exceptionResponse(e)
         return defaultResponse()
 
     @app_permissions
     @user_is_authenticated
     def post(self, request):
-        data = {}
         try:
+            data = {}
             token = request.data['auth_token']
             if 'chain' in request.data:
                 chain_id = int(request.data['chain'])
@@ -184,14 +185,14 @@ class ShopsView(APIView):
                 data['message'] = "Select a chain of shops!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return exceptionResponse(e, data)
+            return exceptionResponse(e)
         return defaultResponse()
 
     @app_permissions
     @user_is_authenticated
     def delete(self, request):
-        data = {}
         try:
+            data = {}
             token = request.data['auth_token']
             id = None
             if 'id' not in request.data:
@@ -209,14 +210,14 @@ class ShopsView(APIView):
             data['message'] = "Shop has been deleted!"
             return Response(data)
         except Exception as e:
-            return exceptionResponse(e, data)
+            return exceptionResponse(e)
         return defaultResponse()
 
     @app_permissions
     @user_is_authenticated
     def patch(self, request):
-        data = {}
         try:
+            data = {}
             token = request.data['auth_token']
             id = None
             if 'id' not in request.data:
@@ -255,7 +256,7 @@ class ShopsView(APIView):
                 data['message'] = "No changes"
             return Response(data)
         except Exception as e:
-            return exceptionResponse(e, data)
+            return exceptionResponse(e)
         return defaultResponse()
 
 
@@ -263,8 +264,8 @@ class ManagersView(APIView):
     @app_permissions
     @user_is_authenticated
     def get(self, request):
-        data = {}
         try:
+            data = {}
             if 'type' not in request.data:
                 data['message'] = "Select a type request!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -284,21 +285,56 @@ class ManagersView(APIView):
                     data['managers'] = ManagerSerializer(Shop.objects.get(id=id).managers, many=True).data
                     return Response(data)
                 else:
-                    data['message'] = "Chain is not found!"
+                    data['message'] = "Shop is not found!"
                     return Response(data, status=status.HTTP_404_NOT_FOUND)
             else:
                 data['message'] = "Type is incorrect!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return exceptionResponse(e, data)
+            return exceptionResponse(e)
         return defaultResponse()
 
     @app_permissions
     @user_is_authenticated
     def post(self, request):
-        data = {}
         try:
-            pass
+            data = {}
+            if 'type' not in request.data:
+                data['message'] = "Select a type request!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            elif 'id' not in request.data:
+                data['message'] = "Id is empty!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            id = request.data['id']
+            if 'user' not in request.data:
+                data['message'] = "User is empty!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(id=int(request.data['user'])).exists():
+                user = request.data['user']
+                if request.data['type'] == 'chain':
+                    if ShopChain.objects.filter(id=int(id)).exists():
+                        ShopChain.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
+                        data['message'] = "Manager has been added!"
+                        data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
+                        return Response(data)
+                    else:
+                        data['message'] = "Chain is not found!"
+                        return Response(data, status=status.HTTP_404_NOT_FOUND)
+                elif request.data['type'] == 'shop':
+                    if Shop.objects.filter(id=int(id)).exists():
+                        Shop.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
+                        data['message'] = "Manager has been added!"
+                        data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
+                        return Response(data)
+                    else:
+                        data['message'] = "Shop is not found!"
+                        return Response(data, status=status.HTTP_404_NOT_FOUND)
+                else:
+                    data['message'] = "Type is incorrect!"
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                data['message'] = "User is not found!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return exceptionResponse(e, data)
+            return exceptionResponse(e)
         return defaultResponse()
