@@ -10,10 +10,8 @@ def get_shops_around(your_location, radius=0.5):
     list_of_ids = []
 
     for el in Shop.objects.all():
-        # lat = float(el.location.split(',')[0])
-        # lng = float(el.location.split(',')[1])
 
-        lat, lng = [float(el) for el in el.location.split(',')]
+        lat, lng = el.lat, el.lng
 
         distance = ((your_lng - lng) ** 2 + (your_lat - lat) ** 2) ** (1.0 / 2) * __degree__
 
