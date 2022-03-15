@@ -25,6 +25,10 @@ def app_permissions(func):
     return wrapper
 
 
+def defaultResponse():
+    return Response(None, status=status.HTTP_204_NO_CONTENT)
+
+
 def exceptionResponse(e, data):
     data['message'] = f'[EXCEPTION] {str(e)}'
     return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -63,7 +67,7 @@ class GetShopAroundView(APIView):
                 data['shops'] = shops
         except Exception as e:
             return exceptionResponse(e, data)
-        return Response(data, status=status.HTTP_204_NO_CONTENT)
+        return defaultResponse()
 
 
 class TokenView(APIView):
@@ -94,7 +98,7 @@ class TokenView(APIView):
             return Response(data)
         except Exception as e:
             return exceptionResponse(e, data)
-        return Response(data, status=status.HTTP_204_NO_CONTENT)
+        return defaultResponse()
 
 
 class ShopsView(APIView):
@@ -143,7 +147,7 @@ class ShopsView(APIView):
         except Exception as e:
             del data['shops']
             return exceptionResponse(e, data)
-        return Response(data, status=status.HTTP_204_NO_CONTENT)
+        return defaultResponse()
 
     @app_permissions
     @user_is_authenticated
@@ -181,7 +185,7 @@ class ShopsView(APIView):
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return exceptionResponse(e, data)
-        return Response(data, status=status.HTTP_204_NO_CONTENT)
+        return defaultResponse()
 
     @app_permissions
     @user_is_authenticated
@@ -206,7 +210,7 @@ class ShopsView(APIView):
             return Response(data)
         except Exception as e:
             return exceptionResponse(e, data)
-        return Response(data, status=status.HTTP_204_NO_CONTENT)
+        return defaultResponse()
 
     @app_permissions
     @user_is_authenticated
@@ -252,7 +256,7 @@ class ShopsView(APIView):
             return Response(data)
         except Exception as e:
             return exceptionResponse(e, data)
-        return Response(data, status=status.HTTP_204_NO_CONTENT)
+        return defaultResponse()
 
 
 class ManagersView(APIView):
@@ -271,14 +275,30 @@ class ManagersView(APIView):
             if request.data['type'] == 'chain':
                 if ShopChain.objects.filter(id=int(id)).exists():
                     data['managers'] = ManagerSerializer(ShopChain.objects.get(id=id).managers, many=True).data
+                    return Response(data)
                 else:
                     data['message'] = "Chain is not found!"
                     return Response(data, status=status.HTTP_404_NOT_FOUND)
             elif request.data['type'] == 'shop':
-                pass
+                if Shop.objects.filter(id=int(id)).exists():
+                    data['managers'] = ManagerSerializer(Shop.objects.get(id=id).managers, many=True).data
+                    return Response(data)
+                else:
+                    data['message'] = "Chain is not found!"
+                    return Response(data, status=status.HTTP_404_NOT_FOUND)
             else:
                 data['message'] = "Type is incorrect!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return exceptionResponse(e, data)
-        return Response(data, status=status.HTTP_204_NO_CONTENT)
+        return defaultResponse()
+
+    @app_permissions
+    @user_is_authenticated
+    def post(self, request):
+        data = {}
+        try:
+            pass
+        except Exception as e:
+            return exceptionResponse(e, data)
+        return defaultResponse()
