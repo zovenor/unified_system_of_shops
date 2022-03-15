@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from main.models import Shop, ShopChain
-from .serializers import ShopSerializer
+from .serializers import ShopSerializer, ShopChainSerializer, UserSerializer, ManagerSerializer
 
 
 def app_permissions(func):
@@ -25,6 +25,11 @@ def app_permissions(func):
     return wrapper
 
 
+def exceptionResponse(e, data):
+    data['message'] = f'[EXCEPTION] {str(e)}'
+    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+
 def user_is_authenticated(func):
     def wrapper(self, request, *args, **kwargs):
         if 'auth_token' in request.data:
@@ -40,13 +45,10 @@ def user_is_authenticated(func):
 class GetShopAroundView(APIView):
     @app_permissions
     def get(self, request):
-        shops = None
-
-        data = {
-            'shops': shops,
-        }
-
+        data = {}
         try:
+            shops = None
+            data['shoos'] = shops
             if 'lat' in request.headers and 'lng' in request.headers:
                 shops = ShopSerializer(get_shops_around([float(request.headers['lat']), float(request.headers['lng'])]),
                                        many=True).data
@@ -60,51 +62,48 @@ class GetShopAroundView(APIView):
                                                         radius=float(request.headers['radius'])), many=True).data
                 data['shops'] = shops
         except Exception as e:
-            data['message'] = f'[EXCEPTION] {str(e)}'
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(data)
+            return exceptionResponse(e, data)
+        return Response(data, status=status.HTTP_204_NO_CONTENT)
 
 
 class TokenView(APIView):
     @app_permissions
     def post(self, request):
         data = {}
-
-        if 'username' not in request.data:
-            data['message'] = "Username is empty!"
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            username = request.data['username']
-            if not User.objects.filter(username=username).exists():
-                data['message'] = "User is not found!"
-                return Response(data, status=status.HTTP_404_NOT_FOUND)
-        if 'password' not in request.data:
-            data['message'] = "Password is empty!"
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            password = request.data['password']
-            user = authenticate(username=username, password=password)
-            if user is None:
-                data['message'] = "The password is incorrect!"
+        try:
+            if 'username' not in request.data:
+                data['message'] = "Username is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
             else:
-                data['token'] = Token.objects.get_or_create(user=user)[0].key
+                username = request.data['username']
+                if not User.objects.filter(username=username).exists():
+                    data['message'] = "User is not found!"
+                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+            if 'password' not in request.data:
+                data['message'] = "Password is empty!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                password = request.data['password']
+                user = authenticate(username=username, password=password)
+                if user is None:
+                    data['message'] = "The password is incorrect!"
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    data['token'] = Token.objects.get_or_create(user=user)[0].key
 
-        return Response(data)
+            return Response(data)
+        except Exception as e:
+            return exceptionResponse(e, data)
+        return Response(data, status=status.HTTP_204_NO_CONTENT)
 
 
 class ShopsView(APIView):
     @app_permissions
     def get(self, request):
-
-        shops = Shop.objects.all()
-
-        data = {
-            'shops': ShopSerializer(shops, many=True),
-        }
-
+        data = {}
         try:
+            shops = Shop.objects.all()
+            data['shops'] = ShopSerializer(shops, many=True)
             if 'chain' in request.headers:
                 h_chain = int(request.headers['chain'])
                 if shops.filter(chain=h_chain).exists():
@@ -143,16 +142,15 @@ class ShopsView(APIView):
             return Response(data)
         except Exception as e:
             del data['shops']
-            data['message'] = f'[EXCEPTION] {str(e)}'
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            return exceptionResponse(e, data)
+        return Response(data, status=status.HTTP_204_NO_CONTENT)
 
     @app_permissions
     @user_is_authenticated
     def post(self, request):
-        token = request.data['auth_token']
         data = {}
-
         try:
+            token = request.data['auth_token']
             if 'chain' in request.data:
                 chain_id = int(request.data['chain'])
                 if ShopChain.objects.filter(id=chain_id).exists():
@@ -182,16 +180,15 @@ class ShopsView(APIView):
                 data['message'] = "Select a chain of shops!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            data['message'] = f'[EXCEPTION] {str(e)}'
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            return exceptionResponse(e, data)
+        return Response(data, status=status.HTTP_204_NO_CONTENT)
 
     @app_permissions
     @user_is_authenticated
     def delete(self, request):
-        token = request.data['auth_token']
         data = {}
-
         try:
+            token = request.data['auth_token']
             id = None
             if 'id' not in request.data:
                 data['message'] = "Id is empty!"
@@ -208,16 +205,15 @@ class ShopsView(APIView):
             data['message'] = "Shop has been deleted!"
             return Response(data)
         except Exception as e:
-            data['message'] = f'[EXCEPTION] {e}'
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            return exceptionResponse(e, data)
+        return Response(data, status=status.HTTP_204_NO_CONTENT)
 
     @app_permissions
     @user_is_authenticated
     def patch(self, request):
-        token = request.data['auth_token']
         data = {}
-
         try:
+            token = request.data['auth_token']
             id = None
             if 'id' not in request.data:
                 data['message'] = "Id is empty!"
@@ -255,5 +251,34 @@ class ShopsView(APIView):
                 data['message'] = "No changes"
             return Response(data)
         except Exception as e:
-            data['message'] = f'[EXCEPTION] {str(e)}'
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            return exceptionResponse(e, data)
+        return Response(data, status=status.HTTP_204_NO_CONTENT)
+
+
+class ManagersView(APIView):
+    @app_permissions
+    @user_is_authenticated
+    def get(self, request):
+        data = {}
+        try:
+            if 'type' not in request.data:
+                data['message'] = "Select a type request!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            elif 'id' not in request.data:
+                data['message'] = "Id is empty!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            id = request.data['id']
+            if request.data['type'] == 'chain':
+                if ShopChain.objects.filter(id=int(id)).exists():
+                    data['managers'] = ManagerSerializer(ShopChain.objects.get(id=id).managers, many=True).data
+                else:
+                    data['message'] = "Chain is not found!"
+                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+            elif request.data['type'] == 'shop':
+                pass
+            else:
+                data['message'] = "Type is incorrect!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return exceptionResponse(e, data)
+        return Response(data, status=status.HTTP_204_NO_CONTENT)

@@ -6,4 +6,5 @@ urlpatterns = [
     path('token/', views.TokenView.as_view()),
     path('shops_around/', views.GetShopAroundView.as_view()),
     path('shops/', views.ShopsView.as_view()),
+    path('managers/', views.ManagersView.as_view()),
 ]
