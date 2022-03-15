@@ -299,6 +299,7 @@ class ManagersView(APIView):
     def post(self, request):
         try:
             data = {}
+            token = request.data['auth_token']
             if 'type' not in request.data:
                 data['message'] = "Select a type manager!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -313,6 +314,10 @@ class ManagersView(APIView):
                 user = request.data['user']
                 if request.data['type'] == 'chain':
                     if ShopChain.objects.filter(id=int(id)).exists():
+                        if not ShopChain.objects.get(id=int(id)).managers.filter(
+                                id=Token.objects.get(key=token).user.id).exists():
+                            data['message'] = "You do not have a permissions!"
+                            return Response(data, status=status.HTTP_403_FORBIDDEN)
                         if not ShopChain.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
                             ShopChain.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
                             data['message'] = "Manager has been added!"
@@ -326,6 +331,10 @@ class ManagersView(APIView):
                         return Response(data, status=status.HTTP_404_NOT_FOUND)
                 elif request.data['type'] == 'shop':
                     if Shop.objects.filter(id=int(id)).exists():
+                        if not Shop.objects.get(id=int(id)).managers.filter(
+                                id=Token.objects.get(key=token).user.id).exists():
+                            data['message'] = "You do not have a permissions!"
+                            return Response(data, status=status.HTTP_403_FORBIDDEN)
                         if not Shop.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
                             Shop.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
                             data['message'] = "Manager has been added!"
@@ -352,6 +361,7 @@ class ManagersView(APIView):
     def delete(self, request):
         try:
             data = {}
+            token = request.data['auth_token']
             if 'type' not in request.data:
                 data['message'] = "Select a type manager!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -366,6 +376,10 @@ class ManagersView(APIView):
                 user = request.data['user']
                 if request.data['type'] == 'chain':
                     if ShopChain.objects.filter(id=int(id)).exists():
+                        if not ShopChain.objects.get(id=int(id)).managers.filter(
+                                id=Token.objects.get(key=token).user.id).exists():
+                            data['message'] = "You do not have a permissions!"
+                            return Response(data, status=status.HTTP_403_FORBIDDEN)
                         if ShopChain.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
                             ShopChain.objects.get(id=int(id)).managers.remove(User.objects.get(id=int(user)))
                             data['message'] = "Manager has been deleted!"
@@ -379,6 +393,10 @@ class ManagersView(APIView):
                         return Response(data, status=status.HTTP_404_NOT_FOUND)
                 elif request.data['type'] == 'shop':
                     if Shop.objects.filter(id=int(id)).exists():
+                        if not Shop.objects.get(id=int(id)).managers.filter(
+                                id=Token.objects.get(key=token).user.id).exists():
+                            data['message'] = "You do not have a permissions!"
+                            return Response(data, status=status.HTTP_403_FORBIDDEN)
                         if Shop.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
                             Shop.objects.get(id=int(id)).managers.remove(User.objects.get(id=int(user)))
                             data['message'] = "Manager has been deleted!"
