@@ -1,13 +1,28 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
-from main.models import Shop, ShopChain
+from main.models import Shop, ShopChain, ApplicationToken
 from .serializers import ShopSerializer
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from .algoritms import *
+
+
+def app_permission(func):
+    def wrapper(self, request, *args, **kwargs):
+        if 'app_token' not in request.data:
+            return Response({
+                'message': "App is not authenticated!",
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        elif not ApplicationToken.objects.filter(key=request.data['app_token']).exists():
+            return Response({
+                'message': "App is not authenticated!",
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        return func(self, request, *args, **kwargs)
+
+    return wrapper
 
 
 def user_is_authenticated(func):
@@ -42,35 +57,37 @@ def create_shop(request, data):
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
-def get_shops_around_api(request):
-    shops = None
+class GetShopAroundView(APIView):
+    @app_permission
+    def get(self, request):
+        shops = None
 
-    data = {
-        'shops': shops,
-    }
+        data = {
+            'shops': shops,
+        }
 
-    try:
-        if 'lat' in request.headers and 'lng' in request.headers:
-            shops = ShopSerializer(get_shops_around([float(request.headers['lat']), float(request.headers['lng'])]),
-                                   many=True).data
-            data['shops'] = shops
-        else:
-            del data['shops']
-            data['message'] = "Do not give a latitude and (or) a longitude!"
+        try:
+            if 'lat' in request.headers and 'lng' in request.headers:
+                shops = ShopSerializer(get_shops_around([float(request.headers['lat']), float(request.headers['lng'])]),
+                                       many=True).data
+                data['shops'] = shops
+            else:
+                del data['shops']
+                data['message'] = "Do not give a latitude and (or) a longitude!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            if 'radius' in request.headers:
+                shops = ShopSerializer(get_shops_around([float(request.headers['lat']), float(request.headers['lng'])],
+                                                        radius=float(request.headers['radius'])), many=True).data
+                data['shops'] = shops
+        except Exception as e:
+            data['message'] = f'[EXCEPTION] {str(e)}'
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
-        if 'radius' in request.headers:
-            shops = ShopSerializer(get_shops_around([float(request.headers['lat']), float(request.headers['lng'])],
-                                                    radius=float(request.headers['radius'])), many=True).data
-            data['shops'] = shops
-    except Exception as e:
-        data['message'] = f'[EXCEPTION] {str(e)}'
-        return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response(data)
+        return Response(data)
 
 
 class TokenView(APIView):
+    @app_permission
     def post(self, request):
         data = {}
 
@@ -98,6 +115,7 @@ class TokenView(APIView):
 
 
 class ShopsView(APIView):
+    @app_permission
     def get(self, request):
 
         shops = Shop.objects.all()
@@ -148,6 +166,7 @@ class ShopsView(APIView):
             data['message'] = f'[EXCEPTION] {str(e)}'
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
+    @app_permission
     @user_is_authenticated
     def post(self, request):
         token = request.data['auth_token']
@@ -174,6 +193,7 @@ class ShopsView(APIView):
             data['message'] = f'[EXCEPTION] {str(e)}'
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
+    @app_permission
     @user_is_authenticated
     def delete(self, request):
         token = request.data['auth_token']
@@ -189,7 +209,7 @@ class ShopsView(APIView):
                 return Response(data, status=status.HTTP_404_NOT_FOUND)
             else:
                 id = int(request.data['id'])
-            if  not Shop.objects.get(id=id).managers.filter(id=Token.objects.get(key=token).user.id).exists():
+            if not Shop.objects.get(id=id).managers.filter(id=Token.objects.get(key=token).user.id).exists():
                 data['message'] = "You do not have a permissions!"
                 return Response(data, status=status.HTTP_403_FORBIDDEN)
             Shop.objects.get(id=id).delete()
