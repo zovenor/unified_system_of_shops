@@ -1,16 +1,16 @@
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from rest_framework.views import APIView
-from main.models import Shop, ShopChain, ApplicationToken
-from .serializers import ShopSerializer
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from rest_framework.authtoken.models import Token
-from rest_framework import status
 from .algoritms import *
+from .models import ApplicationToken
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from main.models import Shop, ShopChain
+from .serializers import ShopSerializer
 
 
-def app_permission(func):
+def app_permissions(func):
     def wrapper(self, request, *args, **kwargs):
         if 'app_token' not in request.data:
             return Response({
@@ -37,28 +37,8 @@ def user_is_authenticated(func):
     return wrapper
 
 
-def create_shop(request, data):
-    try:
-        chain = ShopChain.objects.get(id=int(request.data['chain']))
-        manager = Token.objects.get(key=request.data['auth_token']).user
-        if 'lat' in request.data and 'lng' in request.data:
-            lat = float(request.data['lat'])
-            lng = float(request.data['lng'])
-        else:
-            data['message'] = "Do not give a latitude and (or) a longitude!"
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
-        shop = Shop.objects.create(chain=chain, lat=lat, lng=lng)
-        shop.managers.add(manager)
-        data['shop'] = ShopSerializer(shop).data
-        return Response(data)
-    except Exception as e:
-        data['message'] = f'[EXCEPTION] {str(e)}'
-        return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
-
 class GetShopAroundView(APIView):
-    @app_permission
+    @app_permissions
     def get(self, request):
         shops = None
 
@@ -87,7 +67,7 @@ class GetShopAroundView(APIView):
 
 
 class TokenView(APIView):
-    @app_permission
+    @app_permissions
     def post(self, request):
         data = {}
 
@@ -115,7 +95,7 @@ class TokenView(APIView):
 
 
 class ShopsView(APIView):
-    @app_permission
+    @app_permissions
     def get(self, request):
 
         shops = Shop.objects.all()
@@ -166,7 +146,7 @@ class ShopsView(APIView):
             data['message'] = f'[EXCEPTION] {str(e)}'
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-    @app_permission
+    @app_permissions
     @user_is_authenticated
     def post(self, request):
         token = request.data['auth_token']
@@ -174,12 +154,24 @@ class ShopsView(APIView):
 
         try:
             if 'chain' in request.data:
-                chain = int(request.data['chain'])
-                if ShopChain.objects.filter(id=chain).exists():
-                    chain = ShopChain.objects.get(id=chain)
+                chain_id = int(request.data['chain'])
+                if ShopChain.objects.filter(id=chain_id).exists():
+                    chain = ShopChain.objects.get(id=chain_id)
                     if chain.managers.filter(auth_token=token).exists():
                         data['message'] = "Shop has been created!"
-                        return create_shop(request, data)
+                        manager = Token.objects.get(key=request.data['auth_token']).user
+                        if 'lat' in request.data and 'lng' in request.data:
+                            lat = float(request.data['lat'])
+                            lng = float(request.data['lng'])
+                        else:
+                            data['message'] = "Do not give a latitude and (or) a longitude!"
+                            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+                        shop = Shop.objects.create(chain=chain, lat=lat, lng=lng)
+                        shop.managers.add(manager)
+                        data['shop'] = ShopSerializer(shop).data
+                        data['message'] = "Shop has been created!"
+                        return Response(data)
                     else:
                         data['message'] = "You do not have a permissions!"
                         return Response(data, status=status.HTTP_403_FORBIDDEN)
@@ -193,7 +185,7 @@ class ShopsView(APIView):
             data['message'] = f'[EXCEPTION] {str(e)}'
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-    @app_permission
+    @app_permissions
     @user_is_authenticated
     def delete(self, request):
         token = request.data['auth_token']
@@ -217,4 +209,51 @@ class ShopsView(APIView):
             return Response(data)
         except Exception as e:
             data['message'] = f'[EXCEPTION] {e}'
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    @app_permissions
+    @user_is_authenticated
+    def patch(self, request):
+        token = request.data['auth_token']
+        data = {}
+
+        try:
+            id = None
+            if 'id' not in request.data:
+                data['message'] = "Id is empty!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            elif not Shop.objects.filter(id=int(request.data['id'])).exists():
+                data['message'] = "Shop is not found!"
+                return Response(data, status=status.HTTP_404_NOT_FOUND)
+            else:
+                id = int(request.data['id'])
+            if not Shop.objects.get(id=id).managers.filter(id=Token.objects.get(key=token).user.id).exists():
+                data['message'] = "You do not have a permissions!"
+                return Response(data, status=status.HTTP_403_FORBIDDEN)
+            shop = Shop.objects.get(id=id)
+            changed = False
+            if 'chain' in request.data:
+                if ShopChain.objects.filter(id=int(request.data['chain'])).exists():
+                    if int(request.data['chain']) != int(shop.chain.id):
+                        changed = True
+                        shop.chain = ShopChain.objects.get(id=int(request.data['chain']))
+                else:
+                    data['message'] = "This chain does not exists!"
+                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+            if 'lat' in request.data:
+                if float(request.data['lat']) != shop.lat:
+                    changed = True
+                    shop.lat = float(request.data['lat'])
+            if 'lng' in request.data:
+                if float(request.data['lng']) != shop.lng:
+                    changed = True
+                    shop.lng = float(request.data['lng'])
+            if changed:
+                shop.save()
+                data['message'] = "Shop has been updated!"
+            else:
+                data['message'] = "No changes"
+            return Response(data)
+        except Exception as e:
+            data['message'] = f'[EXCEPTION] {str(e)}'
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
