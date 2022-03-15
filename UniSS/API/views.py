@@ -111,9 +111,10 @@ class ShopsView(APIView):
             data['shops'] = ShopSerializer(shops, many=True)
             if 'chain' in request.headers:
                 h_chain = int(request.headers['chain'])
+                print("IEBJEBVJKEVBKJEVB")
                 if shops.filter(chain=h_chain).exists():
                     shops = shops.filter(chain=h_chain)
-                    data['shops'] = ShopSerializer(shops, many=True)
+                    data['shops'] = ShopSerializer(shops, many=True).data
                 elif not ShopChain.objects.filter(id=h_chain).exists():
                     data['message'] = "This chain of shops does not exists!"
                     del shops
@@ -129,7 +130,7 @@ class ShopsView(APIView):
                 h_id = int(request.headers['id'])
                 if shops.filter(id=h_id).exists():
                     shops = shops.get(id=h_id)
-                    data['shops'] = ShopSerializer(shops)
+                    data['shops'] = ShopSerializer(shops).data
                 else:
                     data['message'] = "This shop does not exists!"
                     del shops
@@ -203,7 +204,7 @@ class ShopsView(APIView):
                 return Response(data, status=status.HTTP_404_NOT_FOUND)
             else:
                 id = int(request.data['id'])
-            if not Shop.objects.get(id=id).managers.filter(id=Token.objects.get(key=token).user.id).exists():
+            if not ShopChain.objects.get(id=Shop.objects.get(id=id).chain.id).managers.filter(id=Token.objects.get(key=token).user.id).exists():
                 data['message'] = "You do not have a permissions!"
                 return Response(data, status=status.HTTP_403_FORBIDDEN)
             Shop.objects.get(id=id).delete()
