@@ -31,7 +31,7 @@ def defaultResponse():
 
 def exceptionResponse(e):
     return Response({
-            'message ': f'[EXCEPTION] {str(e)}',
+        'message ': f'[EXCEPTION] {str(e)}',
     }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -313,19 +313,27 @@ class ManagersView(APIView):
                 user = request.data['user']
                 if request.data['type'] == 'chain':
                     if ShopChain.objects.filter(id=int(id)).exists():
-                        ShopChain.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
-                        data['message'] = "Manager has been added!"
-                        data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
-                        return Response(data)
+                        if not ShopChain.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
+                            ShopChain.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
+                            data['message'] = "Manager has been added!"
+                            data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
+                            return Response(data)
+                        else:
+                            data['message'] = "User is already a manager in this chain!"
+                            return Response(data, status=status.HTTP_208_ALREADY_REPORTED)
                     else:
                         data['message'] = "Chain is not found!"
                         return Response(data, status=status.HTTP_404_NOT_FOUND)
                 elif request.data['type'] == 'shop':
                     if Shop.objects.filter(id=int(id)).exists():
-                        Shop.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
-                        data['message'] = "Manager has been added!"
-                        data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
-                        return Response(data)
+                        if not Shop.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
+                            Shop.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
+                            data['message'] = "Manager has been added!"
+                            data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
+                            return Response(data)
+                        else:
+                            data['message'] = "User is already a manager in this shop!"
+                            return Response(data, status=status.HTTP_208_ALREADY_REPORTED)
                     else:
                         data['message'] = "Shop is not found!"
                         return Response(data, status=status.HTTP_404_NOT_FOUND)
@@ -358,19 +366,26 @@ class ManagersView(APIView):
                 user = request.data['user']
                 if request.data['type'] == 'chain':
                     if ShopChain.objects.filter(id=int(id)).exists():
-                        ShopChain.objects.get(id=int(id)).managers.remove(User.objects.get(id=int(user)))
-                        data['message'] = "Manager has been deleted!"
-                        data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
-                        return Response(data)
+                        if ShopChain.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
+                            ShopChain.objects.get(id=int(id)).managers.remove(User.objects.get(id=int(user)))
+                            data['message'] = "Manager has been deleted!"
+                            data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
+                            return Response(data)
+                        else:
+                            data['message'] = "User is not a manager in this chain!"
+                            return Response(data, status=status.HTTP_208_ALREADY_REPORTED)
                     else:
                         data['message'] = "Chain is not found!"
                         return Response(data, status=status.HTTP_404_NOT_FOUND)
                 elif request.data['type'] == 'shop':
                     if Shop.objects.filter(id=int(id)).exists():
-                        Shop.objects.get(id=int(id)).managers.remove(User.objects.get(id=int(user)))
-                        data['message'] = "Manager has been deleted!"
-                        data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
-                        return Response(data)
+                        if Shop.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
+                            Shop.objects.get(id=int(id)).managers.remove(User.objects.get(id=int(user)))
+                            data['message'] = "Manager has been deleted!"
+                            data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
+                            return Response(data)
+                        data['message'] = "User is not a manager in this shop!"
+                        return Response(data, status=status.HTTP_208_ALREADY_REPORTED)
                     else:
                         data['message'] = "Shop is not found!"
                         return Response(data, status=status.HTTP_404_NOT_FOUND)
