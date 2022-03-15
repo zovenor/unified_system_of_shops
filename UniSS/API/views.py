@@ -300,7 +300,7 @@ class ManagersView(APIView):
         try:
             data = {}
             if 'type' not in request.data:
-                data['message'] = "Select a type request!"
+                data['message'] = "Select a type manager!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
             elif 'id' not in request.data:
                 data['message'] = "Id is empty!"
@@ -324,6 +324,51 @@ class ManagersView(APIView):
                     if Shop.objects.filter(id=int(id)).exists():
                         Shop.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
                         data['message'] = "Manager has been added!"
+                        data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
+                        return Response(data)
+                    else:
+                        data['message'] = "Shop is not found!"
+                        return Response(data, status=status.HTTP_404_NOT_FOUND)
+                else:
+                    data['message'] = "Type is incorrect!"
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                data['message'] = "User is not found!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
+
+    @app_permissions
+    @user_is_authenticated
+    def delete(self, request):
+        try:
+            data = {}
+            if 'type' not in request.data:
+                data['message'] = "Select a type manager!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            elif 'id' not in request.data:
+                data['message'] = "Id is empty!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            id = request.data['id']
+            if 'user' not in request.data:
+                data['message'] = "User is empty!"
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(id=int(request.data['user'])).exists():
+                user = request.data['user']
+                if request.data['type'] == 'chain':
+                    if ShopChain.objects.filter(id=int(id)).exists():
+                        ShopChain.objects.get(id=int(id)).managers.remove(User.objects.get(id=int(user)))
+                        data['message'] = "Manager has been deleted!"
+                        data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
+                        return Response(data)
+                    else:
+                        data['message'] = "Chain is not found!"
+                        return Response(data, status=status.HTTP_404_NOT_FOUND)
+                elif request.data['type'] == 'shop':
+                    if Shop.objects.filter(id=int(id)).exists():
+                        Shop.objects.get(id=int(id)).managers.remove(User.objects.get(id=int(user)))
+                        data['message'] = "Manager has been deleted!"
                         data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
                         return Response(data)
                     else:
