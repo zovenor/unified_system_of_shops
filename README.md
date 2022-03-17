@@ -1,9 +1,9 @@
 # Unified system of shops
 
 ## REST API
-* ##Get Token
-####GET `/api/v1/token/`
-####Body:
+* ## Get Token
+#### GET `/api/v1/token/`
+#### Body:
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
@@ -11,15 +11,15 @@
   password: <PASSWORD (type:str) (REQUIRED)>,
 }
 ```
-####Response:
-```yaml
+#### Response:
+```yaml 
 {
   token: <USER_TOKEN (type:str)>,
 }
 ```
-* ##Get shops around
-####GET `/api/v1/shops_around/`
-####Headers
+* ## Get shops around
+#### GET `/api/v1/shops_around/`
+#### Headers
 ```yaml
 {
   lat: <LATITUDE (type:float) (REQUIRED)>,
@@ -27,13 +27,13 @@
   radius: <RADIUS (type:float) (km, default:0.5)>
 }
 ```
-####Body
+#### Body
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
 }
 ```
-####Response
+#### Response
 ```yaml
 {
   shops: [
@@ -53,22 +53,22 @@
   ]
 }
 ```
-* ##Get shops
-####GET `/api/v1/shops/`
-####Headers
+* ## Get shops
+#### GET `/api/v1/shops/`
+#### Headers
 ```yaml
 {
   chain: <CHAIN_OF_SHOPS_ID (type:int)>,
   id: <SHOP_ID (type:int)>,
 }
 ```
-####Body
+#### Body
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
 }
 ```
-####Response
+#### Response
 ```yaml
 {
   shops: [
@@ -88,9 +88,9 @@
   ]
 }
 ```
-* ##Create a shop
-####POST `/api/v1/shops/`
-####Body
+* ## Create a shop
+#### POST `/api/v1/shops/`
+#### Body
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
@@ -100,7 +100,7 @@
   lng: <LONGTUDE (type:float) (REQUIRED)>,
 }
 ```
-####Response
+#### Response
 ```yaml
 {
   message: <MESSAGE (type:str)>,
@@ -117,9 +117,9 @@
   }
 }
 ```
-* ##Delete a shop
-####DELETE `/api/v1/shops/`
-####Body
+* ## Delete a shop
+#### DELETE `/api/v1/shops/`
+#### Body
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
@@ -127,15 +127,15 @@
   id: <SHOP_ID (type:int) (REQUIRED)>,
 }
 ```
-####Response
+#### Response
 ```yaml
 {
   message: <MESSAGE (type:str)>,
 }
 ```
-* ##Update a shop
-####PATCH `/api/v1/shops/`
-####Body
+* ## Update a shop
+#### PATCH `/api/v1/shops/`
+#### Body
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
@@ -146,15 +146,15 @@
   lng: <LONGTUDE (type:float)>,
 }
 ```
-####Response
+#### Response
 ```yaml
 {
   message: <MESSAGE (type:str)>,
 }
 ```
-* ##Get managers
-####GET `/api/v1/managers/`
-####Body
+* ## Get managers
+#### GET `/api/v1/managers/`
+#### Body
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
@@ -163,7 +163,7 @@
   id: <SHOP_ID (type:int) (REQUIRED)>,
 }
 ```
-####Response
+#### Response
 ```yaml
 {
   managers: [
