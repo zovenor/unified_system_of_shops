@@ -53,7 +53,7 @@ class GetShopAroundView(APIView):
         try:
             data = {}
             shops = None
-            data['shoos'] = shops
+            data['shops'] = shops
             if 'lat' in request.headers and 'lng' in request.headers:
                 shops = ShopSerializer(get_shops_around([float(request.headers['lat']), float(request.headers['lng'])]),
                                        many=True).data
@@ -66,6 +66,7 @@ class GetShopAroundView(APIView):
                 shops = ShopSerializer(get_shops_around([float(request.headers['lat']), float(request.headers['lng'])],
                                                         radius=float(request.headers['radius'])), many=True).data
                 data['shops'] = shops
+            return Response(data)
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
@@ -383,7 +384,7 @@ class ManagersView(APIView):
                             return Response(data, status=status.HTTP_403_FORBIDDEN)
                         if ShopChain.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
                             ShopChain.objects.get(id=int(id)).managers.remove(User.objects.get(id=int(user)))
-                            data['message'] = "Manager has been deleted!"
+                            data['message'] = "Manager has been removed!"
                             data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
                             return Response(data)
                         else:
