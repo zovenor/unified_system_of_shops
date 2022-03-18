@@ -25,6 +25,12 @@ def app_permissions(func):
     return wrapper
 
 
+def JustMessage(message, status=status.HTTP_200_OK):
+    return Response({
+        'message': message,
+    }, status=status)
+
+
 def defaultResponse():
     return Response(None, status=status.HTTP_204_NO_CONTENT)
 
@@ -441,12 +447,50 @@ class ProductsView(APIView):
             if 'id' in request.headers:
                 product_id = int(request.headers['id'])
                 if not Product.objects.filter(id=product_id).exists():
-                    data['message'] = "This product is not found!"
-                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                    return JustMessage("This product is not found!", status=status.HTTP_404_NOT_FOUND)
                 products = products.filter(id=product_id)
             if 'find' in request.GET:
                 products = products.filter(name__icontains=request.GET['find'])
             data['products'] = ProductSerializer(products, many=True).data
+            return Response(data)
+
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
+
+    @app_permissions
+    @user_is_authenticated
+    def post(self, request):
+        try:
+            data = {}
+            token = request.data['auth_token']
+            user = Token.objects.get(key=token).user
+            if 'shop' not in request.headers:
+                return JustMessage('Shop id is empty!', status=status.HTTP_400_BAD_REQUEST)
+            if not Shop.objects.filter(id=int(request.headers['shop'])).exists():
+                return JustMessage("Shop is not found!", status=status.HTTP_404_NOT_FOUND)
+            shop = Shop.objects.get(id=int(request.headers['shop']))
+            if not shop.managers.filter(id=user.id).exists() and not shop.chain.managers.filter(id=user.id):
+                return JustMessage("You do not have permissions!")
+            if 'name' not in request.data:
+                return JustMessage("Name is empty!", status=status.HTTP_400_BAD_REQUEST)
+            if 'price' not in request.data:
+                return JustMessage("Price is empty!", status=status.HTTP_400_BAD_REQUEST)
+            if 'currency' not in request.data:
+                return JustMessage("Currency is empty!", status=status.HTTP_400_BAD_REQUEST)
+            if 'count' not in request.data:
+                return JustMessage("Count is empty!", status=status.HTTP_400_BAD_REQUEST)
+            if 'code' not in request.data:
+                return JustMessage("Code is empty!", status=status.HTTP_400_BAD_REQUEST)
+            name = request.data['name']
+            price = float(request.data['price'])
+            currency = request.data['currency']
+            count = int(request.data['count'])
+            code = int(request.data['code'])
+            product = Product.objects.create(name=name, price=price, currency=currency, count=count, code=code,
+                                             shop=shop)
+            data['message'] = "Product has been added successfully!"
+            data['product'] = ProductSerializer(product).data
             return Response(data)
 
         except Exception as e:

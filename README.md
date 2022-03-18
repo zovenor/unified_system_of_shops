@@ -144,7 +144,7 @@ You should be a manager of this shop chain
 #### PATCH `/api/v1/shops/`
 #### Permissions
 You should be a manager of this shop chain
-####Headers
+#### Headers
 ```yaml
   id: <SHOP_ID (type:int) (REQUIRED)>,
 ```
