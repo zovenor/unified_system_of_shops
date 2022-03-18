@@ -367,7 +367,7 @@ class ManagersView(APIView):
             if 'type' not in request.headers:
                 data['message'] = "Select a type manager!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            elif 'id' not in request.v:
+            elif 'id' not in request.headers:
                 data['message'] = "Id is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
             id = request.headers['id']
