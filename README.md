@@ -2,7 +2,7 @@
 
 ## REST API
 * ## Get Token
-#### GET `/api/v1/token/`
+#### POST `/api/v1/token/`
 #### Body:
 ```yaml
 {
@@ -90,6 +90,8 @@
 ```
 * ## Create a shop
 #### POST `/api/v1/shops/`
+#### Permissions
+You should be a manager of this shop chain
 #### Body
 ```yaml
 {
@@ -119,12 +121,17 @@
 ```
 * ## Delete a shop
 #### DELETE `/api/v1/shops/`
+#### Permissions
+You should be a manager of this shop chain
+#### Headers
+```yaml
+  id: <SHOP_ID (type:int) (REQUIRED)>,
+```
 #### Body
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
   auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
-  id: <SHOP_ID (type:int) (REQUIRED)>,
 }
 ```
 #### Response
@@ -135,12 +142,17 @@
 ```
 * ## Update a shop
 #### PATCH `/api/v1/shops/`
+#### Permissions
+You should be a manager of this shop chain
+####Headers
+```yaml
+  id: <SHOP_ID (type:int) (REQUIRED)>,
+```
 #### Body
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
   auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
-  id: <SHOP_ID (type:int) (REQUIRED)>,
   chain: <CHAIN_ID (type:int)>,
   lat: <LATITUDE (type:float)>,
   lng: <LONGTUDE (type:float)>,
@@ -150,17 +162,31 @@
 ```yaml
 {
   message: <MESSAGE (type:str)>,
+  shop: {
+    id: <SHOP_ID (type:int)>,
+    lat: <LATITUDE (type:float)>,
+    lng: <LONGTUDE (type:float)>,
+    chain: <CHAIN_OF_SHOP_ID (type:int)>,
+    managers: [
+      ...
+      <USER_ID (type:int)>,
+      ...
+    ]
+  }
 }
 ```
 * ## Get managers
 #### GET `/api/v1/managers/`
+#### Headers
+```yaml
+  type: <TYPE (type:str) ('chain' or 'shop') (REQUIRED)>
+  id: <SHOP_ID (type:int) (REQUIRED)>,
+```
 #### Body
 ```yaml
 {
   app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
   auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
-  type: <TYPE (type:str) ('chain' or 'shop') (REQUIRED)>
-  id: <SHOP_ID (type:int) (REQUIRED)>,
 }
 ```
 #### Response
@@ -177,5 +203,67 @@
       }
     ...
   ]
+}
+```
+* ## Add manager
+#### POST `/api/v1/managers/`
+#### Permissions
+You should be a manager of this shop or shop chain
+#### Headers
+```yaml
+  type: <TYPE (type:str) ('chain' or 'shop') (REQUIRED)>
+  id: <SHOP_ID (type:int) (REQUIRED)>,
+```
+#### Body
+```yaml
+{
+  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  user: <USER_ID (type:int) (REQUIRED)>
+}
+```
+#### Response
+```yaml
+{
+  message: <MESSAGE (type:str)>
+  manager: 
+      {
+        id: <USER_ID (type:int)>,
+        username: <USERNAME (type:str)>,
+        first_name: <FIRST_NAME (type:str)>,
+        last_name: <LAST_NAME (type:str)>,
+        email: <EMAIL (type:str)>,
+      }
+}
+```
+* ## Remove manager
+#### DELETE `/api/v1/managers/`
+#### Permissions
+You should be a manager of this shop or shop chain
+#### Headers
+```yaml
+  type: <TYPE (type:str) ('chain' or 'shop') (REQUIRED)>
+  id: <SHOP_ID (type:int) (REQUIRED)>,
+```
+#### Body
+```yaml
+{
+  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  user: <USER_ID (type:int) (REQUIRED)>
+}
+```
+#### Response
+```yaml
+{
+  message: <MESSAGE (type:str)>
+  manager: 
+      {
+        id: <USER_ID (type:int)>,
+        username: <USERNAME (type:str)>,
+        first_name: <FIRST_NAME (type:str)>,
+        last_name: <LAST_NAME (type:str)>,
+        email: <EMAIL (type:str)>,
+      }
 }
 ```
