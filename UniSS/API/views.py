@@ -529,11 +529,11 @@ class ProductsView(APIView):
                 return JustMessage('Id is empty!', status=status.HTTP_400_BAD_REQUEST)
             id = int(request.headers['id'])
             if not Product.objects.filter(id=id).exists():
-                return JustMessage('This product is not found!')
+                return JustMessage('This product is not found!', status=status.HTTP_404_NOT_FOUND)
             shop = Product.objects.get(id=id).shop
             product = Product.objects.get(id=id)
             if not shop.managers.filter(id=user.id).exists():
-                return JustMessage('You do not have permissions!')
+                return JustMessage('You do not have permissions!', status=status.HTTP_403_FORBIDDEN)
             changed = False
             if 'name' in request.data:
                 product.name = request.data['name']
@@ -561,6 +561,38 @@ class ProductsView(APIView):
             else:
                 return JustMessage('No changes')
 
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
+
+
+class AddCountProductView(APIView):
+    @app_permissions
+    @user_is_authenticated
+    def post(self, request):
+        try:
+            data = {}
+            token = request.data['auth_token']
+            user = Token.objects.get(key=token).user
+            if 'id' not in request.headers:
+                return JustMessage('Id is empty!', status=status.HTTP_400_BAD_REQUEST)
+            id = int(request.headers['id'])
+            if not Product.objects.filter(id=id).exists():
+                return JustMessage('This product is not found!', status=status.HTTP_404_NOT_FOUND)
+            shop = Product.objects.get(id=id).shop
+            product = Product.objects.get(id=id)
+            if not shop.managers.filter(id=user.id).exists():
+                return JustMessage('You do not have permissions!', status=status.HTTP_403_FORBIDDEN)
+            if 'count' not in request.data:
+                return JustMessage('Count is empty!', status=status.HTTP_400_BAD_REQUEST)
+            count = int(request.data['count'])
+            change = product.change_count(count)
+            if change == None:
+                return JustMessage('Some error with add to count!', status=status.HTTP_400_BAD_REQUEST)
+            data['message'] = "Count has been added successfully!"
+            data['product'] = ProductSerializer(product).data
+            product.save()
+            return Response(data)
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()

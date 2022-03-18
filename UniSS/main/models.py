@@ -41,5 +41,6 @@ class Product(models.Model):
     def change_count(self, count):
         if self.count + count >= 0:
             self.count += count
+            return "OK"
         else:
-            return "Denied!"
+            return None
