@@ -6,8 +6,8 @@ from .models import ApplicationToken
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from main.models import Shop, ShopChain
-from .serializers import ShopSerializer, ShopChainSerializer, UserSerializer, ManagerSerializer
+from main.models import Shop, ShopChain, Product
+from .serializers import ShopSerializer, ShopChainSerializer, UserSerializer, ManagerSerializer, ProductSerializer
 
 
 def app_permissions(func):
@@ -421,6 +421,34 @@ class ManagersView(APIView):
             else:
                 data['message'] = "User is not found!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
+
+
+class ProductsView(APIView):
+    @app_permissions
+    def get(self, request):
+        try:
+            products = Product.objects.all()
+            data = {}
+            if 'chain' in request.headers:
+                chain_id = int(request.headers['chain'])
+                if products_in_chain_of_shops(chain_id) == None:
+                    data['message'] = "This chain is not found!"
+                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                products = products.filter(shop__in=products_in_chain_of_shops(chain_id))
+            if 'id' in request.headers:
+                product_id = int(request.headers['id'])
+                if not Product.objects.filter(id=product_id).exists():
+                    data['message'] = "This product is not found!"
+                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                products = products.filter(id=product_id)
+            if 'find' in request.GET:
+                products = products.filter(name__icontains=request.GET['find'])
+            data['products'] = ProductSerializer(products, many=True).data
+            return Response(data)
+
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()

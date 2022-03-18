@@ -7,4 +7,5 @@ urlpatterns = [
     path('shops_around/', views.GetShopAroundView.as_view()),
     path('shops/', views.ShopsView.as_view()),
     path('managers/', views.ManagersView.as_view()),
+    path('products/', views.ProductsView.as_view()),
 ]

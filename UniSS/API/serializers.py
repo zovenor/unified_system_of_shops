@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from main.models import Shop, ShopChain
+from main.models import Shop, ShopChain, Product
 from django.contrib.auth.models import User
 
 
@@ -26,3 +26,9 @@ class ShopChainSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShopChain
         fields = '__all__'
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = "__all__"

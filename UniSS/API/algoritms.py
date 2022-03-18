@@ -1,5 +1,4 @@
-from main.models import Shop
-from django.db.models.query import QuerySet
+from main.models import Shop, ShopChain
 
 
 def get_shops_around(your_location, radius=0.5):
@@ -18,3 +17,10 @@ def get_shops_around(your_location, radius=0.5):
         if distance < radius:
             list_of_ids.append(el.id)
     return Shop.objects.filter(id__in=list_of_ids)
+
+
+def products_in_chain_of_shops(chain_id):
+    if not ShopChain.objects.filter(id=chain_id).exists():
+        # Chain is not found!
+        return None
+    return Shop.objects.filter(chain=ShopChain.objects.get(id=chain_id))
