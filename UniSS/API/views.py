@@ -112,7 +112,6 @@ class ShopsView(APIView):
             data['shops'] = ShopSerializer(shops, many=True)
             if 'chain' in request.headers:
                 h_chain = int(request.headers['chain'])
-                print("IEBJEBVJKEVBKJEVB")
                 if shops.filter(chain=h_chain).exists():
                     shops = shops.filter(chain=h_chain)
                     data['shops'] = ShopSerializer(shops, many=True).data
@@ -197,14 +196,14 @@ class ShopsView(APIView):
             data = {}
             token = request.data['auth_token']
             id = None
-            if 'id' not in request.data:
+            if 'id' not in request.headers:
                 data['message'] = "Id is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            elif not Shop.objects.filter(id=int(request.data['id'])).exists():
+            elif not Shop.objects.filter(id=int(request.headers['id'])).exists():
                 data['message'] = "Shop is not found!"
                 return Response(data, status=status.HTTP_404_NOT_FOUND)
             else:
-                id = int(request.data['id'])
+                id = int(request.headers['id'])
             if not ShopChain.objects.get(id=Shop.objects.get(id=id).chain.id).managers.filter(id=Token.objects.get(key=token).user.id).exists():
                 data['message'] = "You do not have a permissions!"
                 return Response(data, status=status.HTTP_403_FORBIDDEN)
@@ -222,15 +221,15 @@ class ShopsView(APIView):
             data = {}
             token = request.data['auth_token']
             id = None
-            if 'id' not in request.data:
+            if 'id' not in request.headers:
                 data['message'] = "Id is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            elif not Shop.objects.filter(id=int(request.data['id'])).exists():
+            elif not Shop.objects.filter(id=int(request.headers['id'])).exists():
                 data['message'] = "Shop is not found!"
                 return Response(data, status=status.HTTP_404_NOT_FOUND)
             else:
-                id = int(request.data['id'])
-            if not Shop.objects.get(id=id).managers.filter(id=Token.objects.get(key=token).user.id).exists():
+                id = int(request.headers['id'])
+            if not ShopChain.objects.get(id=Shop.objects.get(id=id).chain.id).managers.filter(id=Token.objects.get(key=token).user.id).exists():
                 data['message'] = "You do not have a permissions!"
                 return Response(data, status=status.HTTP_403_FORBIDDEN)
             shop = Shop.objects.get(id=id)
@@ -254,6 +253,7 @@ class ShopsView(APIView):
             if changed:
                 shop.save()
                 data['message'] = "Shop has been updated!"
+                data['shop'] = ShopSerializer(shop).data
             else:
                 data['message'] = "No changes"
             return Response(data)
@@ -268,21 +268,21 @@ class ManagersView(APIView):
     def get(self, request):
         try:
             data = {}
-            if 'type' not in request.data:
+            if 'type' not in request.headers:
                 data['message'] = "Select a type request!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            elif 'id' not in request.data:
+            elif 'id' not in request.headers:
                 data['message'] = "Id is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            id = request.data['id']
-            if request.data['type'] == 'chain':
+            id = request.headers['id']
+            if request.headers['type'] == 'chain':
                 if ShopChain.objects.filter(id=int(id)).exists():
                     data['managers'] = ManagerSerializer(ShopChain.objects.get(id=id).managers, many=True).data
                     return Response(data)
                 else:
                     data['message'] = "Chain is not found!"
                     return Response(data, status=status.HTTP_404_NOT_FOUND)
-            elif request.data['type'] == 'shop':
+            elif request.headers['type'] == 'shop':
                 if Shop.objects.filter(id=int(id)).exists():
                     data['managers'] = ManagerSerializer(Shop.objects.get(id=id).managers, many=True).data
                     return Response(data)
@@ -302,19 +302,19 @@ class ManagersView(APIView):
         try:
             data = {}
             token = request.data['auth_token']
-            if 'type' not in request.data:
+            if 'type' not in request.headers:
                 data['message'] = "Select a type manager!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            elif 'id' not in request.data:
+            elif 'id' not in request.headers:
                 data['message'] = "Id is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            id = request.data['id']
+            id = request.headers['id']
             if 'user' not in request.data:
                 data['message'] = "User is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
             if User.objects.filter(id=int(request.data['user'])).exists():
                 user = request.data['user']
-                if request.data['type'] == 'chain':
+                if request.headers['type'] == 'chain':
                     if ShopChain.objects.filter(id=int(id)).exists():
                         if not ShopChain.objects.get(id=int(id)).managers.filter(
                                 id=Token.objects.get(key=token).user.id).exists():
@@ -331,7 +331,7 @@ class ManagersView(APIView):
                     else:
                         data['message'] = "Chain is not found!"
                         return Response(data, status=status.HTTP_404_NOT_FOUND)
-                elif request.data['type'] == 'shop':
+                elif request.headers['type'] == 'shop':
                     if Shop.objects.filter(id=int(id)).exists():
                         if not Shop.objects.get(id=int(id)).managers.filter(
                                 id=Token.objects.get(key=token).user.id).exists():
@@ -364,19 +364,19 @@ class ManagersView(APIView):
         try:
             data = {}
             token = request.data['auth_token']
-            if 'type' not in request.data:
+            if 'type' not in request.headers:
                 data['message'] = "Select a type manager!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            elif 'id' not in request.data:
+            elif 'id' not in request.v:
                 data['message'] = "Id is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            id = request.data['id']
+            id = request.headers['id']
             if 'user' not in request.data:
                 data['message'] = "User is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
             if User.objects.filter(id=int(request.data['user'])).exists():
                 user = request.data['user']
-                if request.data['type'] == 'chain':
+                if request.headers['type'] == 'chain':
                     if ShopChain.objects.filter(id=int(id)).exists():
                         if not ShopChain.objects.get(id=int(id)).managers.filter(
                                 id=Token.objects.get(key=token).user.id).exists():
@@ -393,7 +393,7 @@ class ManagersView(APIView):
                     else:
                         data['message'] = "Chain is not found!"
                         return Response(data, status=status.HTTP_404_NOT_FOUND)
-                elif request.data['type'] == 'shop':
+                elif request.headers['type'] == 'shop':
                     if Shop.objects.filter(id=int(id)).exists():
                         if not Shop.objects.get(id=int(id)).managers.filter(
                                 id=Token.objects.get(key=token).user.id).exists():
