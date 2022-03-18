@@ -501,7 +501,6 @@ class ProductsView(APIView):
     @user_is_authenticated
     def delete(self, request):
         try:
-            data = {}
             token = request.data['auth_token']
             user = Token.objects.get(key=token).user
             if 'id' not in request.data:
@@ -510,10 +509,58 @@ class ProductsView(APIView):
             if not Product.objects.filter(id=id).exists():
                 return JustMessage('This product is not found!')
             shop = Product.objects.get(id=id).shop
+            product = Product.objects.get(id=id)
             if not shop.managers.filter(id=user.id).exists():
                 return JustMessage('You do not have permissions!')
-            Product.objects.get(id=id).delete()
+            product.delete()
             return JustMessage('Product has been deleted successfully!')
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
+
+    @app_permissions
+    @user_is_authenticated
+    def patch(self, request):
+        try:
+            data = {}
+            token = request.data['auth_token']
+            user = Token.objects.get(key=token).user
+            if 'id' not in request.headers:
+                return JustMessage('Id is empty!', status=status.HTTP_400_BAD_REQUEST)
+            id = int(request.headers['id'])
+            if not Product.objects.filter(id=id).exists():
+                return JustMessage('This product is not found!')
+            shop = Product.objects.get(id=id).shop
+            product = Product.objects.get(id=id)
+            if not shop.managers.filter(id=user.id).exists():
+                return JustMessage('You do not have permissions!')
+            changed = False
+            if 'name' in request.data:
+                product.name = request.data['name']
+                changed = True
+            if 'price' in request.data:
+                product.price = float(request.data['price'])
+                changed = True
+            if 'currency' in request.data:
+                product.currency = request.data['currency']
+                changed = True
+            if 'count' in request.data:
+                product.count = int(request.data['count'])
+                changed = True
+            if 'code' in request.data:
+                product.code = int(request.data['code'])
+                changed = True
+            if 'shop' in request.data:
+                product.shop = int(request.data['shop'])
+                changed = True
+            if changed:
+                product.save()
+                data['message'] = "Product has been updated successfully!"
+                data['product'] = ProductSerializer(product).data
+                return Response(data)
+            else:
+                return JustMessage('No changes')
+
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
