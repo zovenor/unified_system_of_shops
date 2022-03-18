@@ -10,25 +10,23 @@ from main.models import Shop, ShopChain, Product
 from .serializers import ShopSerializer, ShopChainSerializer, UserSerializer, ManagerSerializer, ProductSerializer
 
 
-def app_permissions(func):
-    def wrapper(self, request, *args, **kwargs):
-        if 'app_token' not in request.data:
-            return Response({
-                'message': "App is not authenticated!",
-            }, status=status.HTTP_401_UNAUTHORIZED)
-        elif not ApplicationToken.objects.filter(key=request.data['app_token']).exists():
-            return Response({
-                'message': "App is not authenticated!",
-            }, status=status.HTTP_401_UNAUTHORIZED)
-        return func(self, request, *args, **kwargs)
-
-    return wrapper
-
-
 def JustMessage(message, status=status.HTTP_200_OK):
     return Response({
         'message': message,
     }, status=status)
+
+
+def app_permissions(func):
+    def wrapper(self, request, *args, **kwargs):
+        if 'app_token' not in request.data:
+            return JustMessage("App token is empty!", status=status.HTTP_401_UNAUTHORIZED)
+        elif not ApplicationToken.objects.filter(key=request.data['app_token']).exists():
+            return JustMessage("App is not authenticated!", status=status.HTTP_401_UNAUTHORIZED)
+        elif ApplicationToken.objects.get(key=request.data['app_token']).active == False:
+            return JustMessage('App token is not active!', status=status.HTTP_401_UNAUTHORIZED)
+        return func(self, request, *args, **kwargs)
+
+    return wrapper
 
 
 def defaultResponse():
@@ -36,9 +34,7 @@ def defaultResponse():
 
 
 def exceptionResponse(e):
-    return Response({
-        'message ': f'[EXCEPTION] {str(e)}',
-    }, status=status.HTTP_400_BAD_REQUEST)
+    return JustMessage(f'[EXCEPTION] {str(e)}', status=status.HTTP_400_BAD_REQUEST)
 
 
 def user_is_authenticated(func):
@@ -46,9 +42,7 @@ def user_is_authenticated(func):
         if 'auth_token' in request.data:
             if Token.objects.filter(key=request.data['auth_token']).exists():
                 return func(self, request, *args, **kwargs)
-        return Response({
-            'message': 'User is not authenticated!',
-        }, status=status.HTTP_401_UNAUTHORIZED)
+        return JustMessage('User is not authenticated!', status=status.HTTP_401_UNAUTHORIZED)
 
     return wrapper
 
@@ -66,8 +60,7 @@ class GetShopAroundView(APIView):
                 data['shops'] = shops
             else:
                 del data['shops']
-                data['message'] = "Do not give a latitude and (or) a longitude!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Do not give a latitude and (or) a longitude!", status=status.HTTP_400_BAD_REQUEST)
             if 'radius' in request.headers:
                 shops = ShopSerializer(get_shops_around([float(request.headers['lat']), float(request.headers['lng'])],
                                                         radius=float(request.headers['radius'])), many=True).data
@@ -84,22 +77,18 @@ class TokenView(APIView):
         try:
             data = {}
             if 'username' not in request.data:
-                data['message'] = "Username is empty!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Username is empty!", status=status.HTTP_400_BAD_REQUEST)
             else:
                 username = request.data['username']
                 if not User.objects.filter(username=username).exists():
-                    data['message'] = "User is not found!"
-                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                    return JustMessage("User is not found!", status=status.HTTP_404_NOT_FOUND)
             if 'password' not in request.data:
-                data['message'] = "Password is empty!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Password is empty!", status=status.HTTP_400_BAD_REQUEST)
             else:
                 password = request.data['password']
                 user = authenticate(username=username, password=password)
                 if user is None:
-                    data['message'] = "The password is incorrect!"
-                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                    return JustMessage("The password is incorrect!", status=status.HTTP_400_BAD_REQUEST)
                 else:
                     data['token'] = Token.objects.get_or_create(user=user)[0].key
 
@@ -122,15 +111,13 @@ class ShopsView(APIView):
                     shops = shops.filter(chain=h_chain)
                     data['shops'] = ShopSerializer(shops, many=True).data
                 elif not ShopChain.objects.filter(id=h_chain).exists():
-                    data['message'] = "This chain of shops does not exists!"
                     del shops
                     del data['shops']
-                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                    return JustMessage("This chain of shops does not exists!", status=status.HTTP_404_NOT_FOUND)
                 else:
-                    data['message'] = "Shop list is empty!"
                     del shops
                     del data['shops']
-                    return Response(data, status=status.HTTP_204_NO_CONTENT)
+                    return JustMessage("Shop list is empty!", status=status.HTTP_204_NO_CONTENT)
 
             if 'id' in request.headers:
                 h_id = int(request.headers['id'])
@@ -138,18 +125,16 @@ class ShopsView(APIView):
                     shops = shops.get(id=h_id)
                     data['shops'] = ShopSerializer(shops).data
                 else:
-                    data['message'] = "This shop does not exists!"
                     del shops
                     del data['shops']
-                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                    return JustMessage("This shop does not exists!", status=status.HTTP_404_NOT_FOUND)
 
             if shops:
                 data['shops'] = data['shops'].data
             else:
                 del data['shops']
                 del shops
-                data['message'] = "Shop list is empty!"
-                return Response(data, status=status.HTTP_204_NO_CONTENT)
+                return JustMessage("Shop list is empty!", status=status.HTTP_204_NO_CONTENT)
 
             return Response(data)
         except Exception as e:
@@ -168,14 +153,13 @@ class ShopsView(APIView):
                 if ShopChain.objects.filter(id=chain_id).exists():
                     chain = ShopChain.objects.get(id=chain_id)
                     if chain.managers.filter(auth_token=token).exists():
-                        data['message'] = "Shop has been created!"
                         manager = Token.objects.get(key=request.data['auth_token']).user
                         if 'lat' in request.data and 'lng' in request.data:
                             lat = float(request.data['lat'])
                             lng = float(request.data['lng'])
                         else:
-                            data['message'] = "Do not give a latitude and (or) a longitude!"
-                            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                            return JustMessage("Do not give a latitude and (or) a longitude!",
+                                               status=status.HTTP_400_BAD_REQUEST)
 
                         shop = Shop.objects.create(chain=chain, lat=lat, lng=lng)
                         shop.managers.add(manager)
@@ -183,14 +167,11 @@ class ShopsView(APIView):
                         data['message'] = "Shop has been created!"
                         return Response(data)
                     else:
-                        data['message'] = "You do not have a permissions!"
-                        return Response(data, status=status.HTTP_403_FORBIDDEN)
+                        return JustMessage("You do not have a permissions!", status=status.HTTP_403_FORBIDDEN)
                 else:
-                    data['message'] = "This chain is not defined!"
-                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                    return JustMessage("This chain is not found!", status=status.HTTP_404_NOT_FOUND)
             else:
-                data['message'] = "Select a chain of shops!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Select a chain of shops!", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
@@ -206,14 +187,12 @@ class ShopsView(APIView):
                 data['message'] = "Id is empty!"
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
             elif not Shop.objects.filter(id=int(request.headers['id'])).exists():
-                data['message'] = "Shop is not found!"
-                return Response(data, status=status.HTTP_404_NOT_FOUND)
+                return JustMessage("Shop is not found!", status=status.HTTP_404_NOT_FOUND)
             else:
                 id = int(request.headers['id'])
             if not ShopChain.objects.get(id=Shop.objects.get(id=id).chain.id).managers.filter(
                     id=Token.objects.get(key=token).user.id).exists():
-                data['message'] = "You do not have a permissions!"
-                return Response(data, status=status.HTTP_403_FORBIDDEN)
+                return JustMessage("You do not have a permissions!", status=status.HTTP_403_FORBIDDEN)
             Shop.objects.get(id=id).delete()
             data['message'] = "Shop has been deleted!"
             return Response(data)
@@ -229,17 +208,14 @@ class ShopsView(APIView):
             token = request.data['auth_token']
             id = None
             if 'id' not in request.headers:
-                data['message'] = "Id is empty!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Id is empty!", status=status.HTTP_400_BAD_REQUEST)
             elif not Shop.objects.filter(id=int(request.headers['id'])).exists():
-                data['message'] = "Shop is not found!"
-                return Response(data, status=status.HTTP_404_NOT_FOUND)
+                return JustMessage("Shop is not found!", status=status.HTTP_404_NOT_FOUND)
             else:
                 id = int(request.headers['id'])
             if not ShopChain.objects.get(id=Shop.objects.get(id=id).chain.id).managers.filter(
                     id=Token.objects.get(key=token).user.id).exists():
-                data['message'] = "You do not have a permissions!"
-                return Response(data, status=status.HTTP_403_FORBIDDEN)
+                return JustMessage("You do not have a permissions!", status=status.HTTP_403_FORBIDDEN)
             shop = Shop.objects.get(id=id)
             changed = False
             if 'chain' in request.data:
@@ -248,8 +224,7 @@ class ShopsView(APIView):
                         changed = True
                         shop.chain = ShopChain.objects.get(id=int(request.data['chain']))
                 else:
-                    data['message'] = "This chain does not exists!"
-                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                    return JustMessage("This chain does not exists!", status=status.HTTP_404_NOT_FOUND)
             if 'lat' in request.data:
                 if float(request.data['lat']) != shop.lat:
                     changed = True
@@ -263,7 +238,7 @@ class ShopsView(APIView):
                 data['message'] = "Shop has been updated!"
                 data['shop'] = ShopSerializer(shop).data
             else:
-                data['message'] = "No changes"
+                return JustMessage("No changes")
             return Response(data)
         except Exception as e:
             return exceptionResponse(e)
@@ -277,29 +252,24 @@ class ManagersView(APIView):
         try:
             data = {}
             if 'type' not in request.headers:
-                data['message'] = "Select a type request!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Select a type request!", status=status.HTTP_400_BAD_REQUEST)
             elif 'id' not in request.headers:
-                data['message'] = "Id is empty!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Id is empty!", status=status.HTTP_400_BAD_REQUEST)
             id = request.headers['id']
             if request.headers['type'] == 'chain':
                 if ShopChain.objects.filter(id=int(id)).exists():
                     data['managers'] = ManagerSerializer(ShopChain.objects.get(id=id).managers, many=True).data
                     return Response(data)
                 else:
-                    data['message'] = "Chain is not found!"
-                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                    return JustMessage("Chain is not found!", status=status.HTTP_404_NOT_FOUND)
             elif request.headers['type'] == 'shop':
                 if Shop.objects.filter(id=int(id)).exists():
                     data['managers'] = ManagerSerializer(Shop.objects.get(id=id).managers, many=True).data
                     return Response(data)
                 else:
-                    data['message'] = "Shop is not found!"
-                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+                    return JustMessage("Shop is not found!", status=status.HTTP_404_NOT_FOUND)
             else:
-                data['message'] = "Type is incorrect!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Type is incorrect!", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
@@ -311,59 +281,49 @@ class ManagersView(APIView):
             data = {}
             token = request.data['auth_token']
             if 'type' not in request.headers:
-                data['message'] = "Select a type manager!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Select a type manager!", status=status.HTTP_400_BAD_REQUEST)
             elif 'id' not in request.headers:
-                data['message'] = "Id is empty!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Id is empty!", status=status.HTTP_400_BAD_REQUEST)
             id = int(request.headers['id'])
             if 'user' not in request.data:
-                data['message'] = "User is empty!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("User is empty!", status=status.HTTP_400_BAD_REQUEST)
             if User.objects.filter(id=int(request.data['user'])).exists():
                 user = request.data['user']
                 if request.headers['type'] == 'chain':
                     if ShopChain.objects.filter(id=int(id)).exists():
                         if not ShopChain.objects.get(id=int(id)).managers.filter(
                                 id=Token.objects.get(key=token).user.id).exists():
-                            data['message'] = "You do not have a permissions!"
-                            return Response(data, status=status.HTTP_403_FORBIDDEN)
+                            return JustMessage("You do not have a permissions!", status=status.HTTP_403_FORBIDDEN)
                         if not ShopChain.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
                             ShopChain.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
                             data['message'] = "Manager has been added!"
                             data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
                             return Response(data)
                         else:
-                            data['message'] = "User is already a manager in this chain!"
-                            return Response(data, status=status.HTTP_208_ALREADY_REPORTED)
+                            return JustMessage("User is already a manager in this chain!",
+                                               status=status.HTTP_208_ALREADY_REPORTED)
                     else:
-                        data['message'] = "Chain is not found!"
-                        return Response(data, status=status.HTTP_404_NOT_FOUND)
+                        return JustMessage("Chain is not found!", status=status.HTTP_404_NOT_FOUND)
                 elif request.headers['type'] == 'shop':
                     if Shop.objects.filter(id=id).exists():
                         if not Shop.objects.get(id=id).managers.filter(
                                 id=Token.objects.get(key=token).user.id).exists() and not ShopChain.objects.get(
                             id=Shop.objects.get(id=id).chain.id).managers.filter(
                             id=Token.objects.get(key=token).user.id).exists():
-                            data['message'] = "You do not have a permissions!"
-                            return Response(data, status=status.HTTP_403_FORBIDDEN)
+                            return JustMessage("You do not have a permissions!", status=status.HTTP_403_FORBIDDEN)
                         if not Shop.objects.get(id=int(id)).managers.filter(id=int(user)).exists():
                             Shop.objects.get(id=int(id)).managers.add(User.objects.get(id=int(user)))
                             data['message'] = "Manager has been added!"
                             data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
                             return Response(data)
                         else:
-                            data['message'] = "User is already a manager in this shop!"
-                            return Response(data, status=status.HTTP_208_ALREADY_REPORTED)
+                            return JustMessage("User is already a manager in this shop!", status=status.HTTP_208_ALREADY_REPORTED)
                     else:
-                        data['message'] = "Shop is not found!"
-                        return Response(data, status=status.HTTP_404_NOT_FOUND)
+                        return JustMessage("Shop is not found!", status=status.HTTP_404_NOT_FOUND)
                 else:
-                    data['message'] = "Type is incorrect!"
-                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                    return JustMessage("Type is incorrect!", status=status.HTTP_400_BAD_REQUEST)
             else:
-                data['message'] = "User is not found!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("User is not found!", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
@@ -375,58 +335,47 @@ class ManagersView(APIView):
             data = {}
             token = request.data['auth_token']
             if 'type' not in request.headers:
-                data['message'] = "Select a type manager!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Select a type manager!", status=status.HTTP_400_BAD_REQUEST)
             elif 'id' not in request.headers:
-                data['message'] = "Id is empty!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("Id is empty!", status=status.HTTP_400_BAD_REQUEST)
             id = int(request.headers['id'])
             if 'user' not in request.data:
-                data['message'] = "User is empty!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("User is empty!", status=status.HTTP_400_BAD_REQUEST)
             if User.objects.filter(id=int(request.data['user'])).exists():
                 user = int(request.data['user'])
                 if request.headers['type'] == 'chain':
                     if ShopChain.objects.filter(id=id).exists():
                         if not ShopChain.objects.get(id=id).managers.filter(
                                 id=Token.objects.get(key=token).user.id).exists():
-                            data['message'] = "You do not have a permissions!"
-                            return Response(data, status=status.HTTP_403_FORBIDDEN)
+                            return JustMessage("You do not have a permissions!", status=status.HTTP_403_FORBIDDEN)
                         if ShopChain.objects.get(id=id).managers.filter(id=user).exists():
                             ShopChain.objects.get(id=id).managers.remove(User.objects.get(id=user))
                             data['message'] = "Manager has been removed!"
                             data['manager'] = ManagerSerializer(User.objects.get(id=user)).data
                             return Response(data)
                         else:
-                            data['message'] = "User is not a manager in this chain!"
-                            return Response(data, status=status.HTTP_208_ALREADY_REPORTED)
+                            return JustMessage("User is not a manager in this chain!", status=status.HTTP_208_ALREADY_REPORTED)
                     else:
-                        data['message'] = "Chain is not found!"
-                        return Response(data, status=status.HTTP_404_NOT_FOUND)
+                        return JustMessage("Chain is not found!", status=status.HTTP_404_NOT_FOUND)
                 elif request.headers['type'] == 'shop':
                     if Shop.objects.filter(id=id).exists():
                         if not Shop.objects.get(id=id).managers.filter(
                                 id=Token.objects.get(key=token).user.id).exists() and not ShopChain.objects.get(
                             id=Shop.objects.get(id=id).chain.id).managers.filter(
                             id=Token.objects.get(key=token).user.id).exists():
-                            data['message'] = "You do not have a permissions!"
-                            return Response(data, status=status.HTTP_403_FORBIDDEN)
+                            return JustMessage("You do not have a permissions!", status=status.HTTP_403_FORBIDDEN)
                         if Shop.objects.get(id=id).managers.filter(id=user).exists():
                             Shop.objects.get(id=id).managers.remove(User.objects.get(id=user))
                             data['message'] = "Manager has been deleted!"
                             data['manager'] = ManagerSerializer(User.objects.get(id=user)).data
                             return Response(data)
-                        data['message'] = "User is not a manager in this shop!"
-                        return Response(data, status=status.HTTP_208_ALREADY_REPORTED)
+                        return JustMessage("User is not a manager in this shop!", status=status.HTTP_208_ALREADY_REPORTED)
                     else:
-                        data['message'] = "Shop is not found!"
-                        return Response(data, status=status.HTTP_404_NOT_FOUND)
+                        return JustMessage("Shop is not found!", status=status.HTTP_404_NOT_FOUND)
                 else:
-                    data['message'] = "Type is incorrect!"
-                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                    return JustMessage("Type is incorrect!", status=status.HTTP_400_BAD_REQUEST)
             else:
-                data['message'] = "User is not found!"
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return JustMessage("User is not found!", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()

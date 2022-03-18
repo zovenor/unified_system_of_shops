@@ -5,6 +5,7 @@ from django.utils.crypto import get_random_string
 class ApplicationToken(models.Model):
     name = models.CharField(max_length=250, unique=True)
     key = models.CharField(max_length=32, default=get_random_string(32), unique=True, editable=False)
+    active = models.BooleanField()
 
     def __str__(self):
         return f'{self.name}  -  {self.key}'
