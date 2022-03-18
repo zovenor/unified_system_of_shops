@@ -496,3 +496,24 @@ class ProductsView(APIView):
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
+
+    @app_permissions
+    @user_is_authenticated
+    def delete(self, request):
+        try:
+            data = {}
+            token = request.data['auth_token']
+            user = Token.objects.get(key=token).user
+            if 'id' not in request.data:
+                return JustMessage('Id is empty!', status=status.HTTP_400_BAD_REQUEST)
+            id = int(request.data['id'])
+            if not Product.objects.filter(id=id).exists():
+                return JustMessage('This product is not found!')
+            shop = Product.objects.get(id=id).shop
+            if not shop.managers.filter(id=user.id).exists():
+                return JustMessage('You do not have permissions!')
+            Product.objects.get(id=id).delete()
+            return JustMessage('Product has been deleted successfully!')
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
