@@ -267,3 +267,165 @@ You should be a manager of this shop or shop chain
       }
 }
 ```
+* ### Get products
+#### GET `/api/v1/products/`
+#### Query parameters
+```
+/api/v1/products?find=<FIND_TEXT (type:str)>
+```
+#### Headers
+```yaml
+{
+  chain: <CHAIN_ID (type:int)>,
+  shop: <SHOP_ID (type:int)>,
+  id: <PRODUCT_ID (type:int),
+}
+```
+#### Body
+```yaml
+{
+  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+}
+```
+#### Response
+```yaml
+{
+  products: [
+    ...
+    {
+      id: <ID (type:int)>,
+      name: <NAME (type:str)>,
+      price: <PRICE (type:float)>,
+      currency: <CURRENCY (type:str)>,
+      count: <COUNT (type:int)>,
+      code: <CODE (type:int)>,
+      shop: <ID_OF_SHOP (type:int)>,
+    }
+    ...
+  ]
+}
+```
+* ### Add a product
+#### POST `api/v1/products/`
+#### Permissions
+You should be a manager of this shop or shop chain
+#### Headers
+```yaml
+{
+  shop: <SHOP_ID (type:int) (REQUIRED)>,
+}
+```
+#### Body
+```yaml
+{
+  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>
+  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  name: <NAME (type:str) (REQUIRED)>,
+  price: <PRICE (type:float) (REQUIRED)>,
+  currecy: <CURRENCY (type:str) (REQUIRED)>,
+  count: <COUNT (type:int) (REQUIRED)>,
+  code: <CODE (type:int) (REQUIRED)>,
+}
+```
+#### Response
+```yaml
+{
+  message: <MESSAGE (type:str)>,
+  product: {
+      id: <ID (type:int)>,
+      name: <NAME (type:str)>,
+      price: <PRICE (type:float)>,
+      currency: <CURRENCY (type:str)>,
+      count: <COUNT (type:int)>,
+      code: <CODE (type:int)>,
+      shop: <ID_OF_SHOP (type:int)>,
+    }
+}
+```
+* ### Delete a product
+#### DELETE `/api/v1/products/`
+#### Permissions
+You should be a manager of this shop or shop chain
+#### Body
+````yaml
+{
+  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  id: <ID (type:str) (REQUIRED)>,
+}
+````
+##### Response
+```yaml
+{
+  message: <MESSAGE (type:str)>,
+}
+```
+* ### Update a product
+#### PATCH `/api/v1/products/`
+#### Permissions
+You should be a manager of this shop or shop chain
+#### Headers
+```yaml
+{
+  id: <ID (type:str) (REQUIRED)>,
+}
+```
+#### Body
+```yaml
+{
+    app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>
+    auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+    name: <NAME (type:str),
+    price: <PRICE (type:float)>,
+    currecy: <CURRENCY (type:str)>,
+    count: <COUNT (type:int)>,
+    code: <CODE (type:int)>,
+}
+```
+#### Response
+```yaml
+{
+  message: <MESSAGE (type:str)>,
+  product: {
+      id: <ID (type:int)>,
+      name: <NAME (type:str)>,
+      price: <PRICE (type:float)>,
+      currency: <CURRENCY (type:str)>,
+      count: <COUNT (type:int)>,
+      code: <CODE (type:int)>,
+      shop: <ID_OF_SHOP (type:int)>,
+    }
+}
+```
+* ### Add to the count in the product
+#### Permissions
+You should be a manager of this shop or shop chain
+#### Header
+```yaml
+{
+  id: <ID (type:int) (REQUIRED)>,
+}
+```
+#### Body
+```yaml
+{
+  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  count: <COUNT_TO_ADD (type:int) (REQUIRED)>,
+}
+```
+#### Response
+```yaml
+{
+  message: <MESSAGE (type:str)>,
+  product: {
+      id: <ID (type:int)>,
+      name: <NAME (type:str)>,
+      price: <PRICE (type:float)>,
+      currency: <CURRENCY (type:str)>,
+      count: <COUNT (type:int)>,
+      code: <CODE (type:int)>,
+      shop: <ID_OF_SHOP (type:int)>,
+    }
+}
+```
