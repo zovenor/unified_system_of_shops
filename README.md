@@ -1,6 +1,21 @@
 # Unified system of shops
 
 ## REST API
+
+* [Get Token](README.md#get-token)
+* [Get shops](README.md#get-shops)
+* [Create a shop](README.md#create-a-shop)
+* [Delete a shop](README.md#delete-a-shop)
+* [Update a shop](README.md#update-a-shop)
+* [Get managers](README.md#get-managers)
+* [Add a manager](README.md#add-a-manager)
+* [Remove a manager](README.md#remove-a-manager)
+* [Get products](README.md#get-products)
+* [Add a product](README.md#add-a-product)
+* [Delete a product](README.md#delete-a-product)
+* [Update a product](README.md#update-a-product)
+* [Add to the count in the product](README.md#add-to-the-count-in-the-product)
+
 * ## Get Token
 #### POST `/api/v1/token/`
 #### Body:
@@ -205,7 +220,7 @@ You should be a manager of this shop chain
   ]
 }
 ```
-* ## Add manager
+* ## Add a manager
 #### POST `/api/v1/managers/`
 #### Permissions
 You should be a manager of this shop or shop chain
@@ -236,7 +251,7 @@ You should be a manager of this shop or shop chain
       }
 }
 ```
-* ## Remove manager
+* ## Remove a manager
 #### DELETE `/api/v1/managers/`
 #### Permissions
 You should be a manager of this shop or shop chain
