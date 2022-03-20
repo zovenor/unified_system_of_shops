@@ -2,19 +2,19 @@
 
 ## REST API
 
-* [Get Token](README.md#get-token)
-* [Get shops](README.md#get-shops)
-* [Create a shop](README.md#create-a-shop)
-* [Delete a shop](README.md#delete-a-shop)
-* [Update a shop](README.md#update-a-shop)
-* [Get managers](README.md#get-managers)
-* [Add a manager](README.md#add-a-manager)
-* [Remove a manager](README.md#remove-a-manager)
-* [Get products](README.md#get-products)
-* [Add a product](README.md#add-a-product)
-* [Delete a product](README.md#delete-a-product)
-* [Update a product](README.md#update-a-product)
-* [Add to the count in the product](README.md#add-to-the-count-in-the-product)
+* [Get Token](#get-token)
+* [Get shops](#get-shops)
+* [Create a shop](#create-a-shop)
+* [Delete a shop](#delete-a-shop)
+* [Update a shop](#update-a-shop)
+* [Get managers](#get-managers)
+* [Add a manager](#add-a-manager)
+* [Remove a manager](#remove-a-manager)
+* [Get products](#get-products)
+* [Add a product](#add-a-product)
+* [Delete a product](#delete-a-product)
+* [Update a product](#update-a-product)
+* [Add to the count in the product](#add-to-the-count-in-the-product)
 
 * ## Get Token
 #### POST `/api/v1/token/`
