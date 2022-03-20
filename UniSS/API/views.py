@@ -47,6 +47,23 @@ def user_is_authenticated(func):
     return wrapper
 
 
+class CreateAppToken(APIView):
+    @user_is_authenticated
+    def post(self, request):
+        try:
+            token = request.data['auth_token']
+            user = Token.objects.get(key=token).user
+            if 'name' not in request.data:
+                return JustMessage('Name is empty!', status=status.HTTP_400_BAD_REQUEST)
+            name = request.data['name']
+            if ApplicationToken.objects.filter(name=name).exists():
+                return JustMessage('This name of token already exists!', status=status.HTTP_208_ALREADY_REPORTED)
+            app_token = ApplicationToken.objects.create(name=name, creator=user)
+            return JustMessage(f'Your application ({name}) has been accepted.')
+        except Exception as e:
+            return exceptionResponse(e)
+
+
 class GetShopAroundView(APIView):
     @app_permissions
     def get(self, request):
@@ -317,7 +334,8 @@ class ManagersView(APIView):
                             data['manager'] = ManagerSerializer(User.objects.get(id=int(user))).data
                             return Response(data)
                         else:
-                            return JustMessage("User is already a manager in this shop!", status=status.HTTP_208_ALREADY_REPORTED)
+                            return JustMessage("User is already a manager in this shop!",
+                                               status=status.HTTP_208_ALREADY_REPORTED)
                     else:
                         return JustMessage("Shop is not found!", status=status.HTTP_404_NOT_FOUND)
                 else:
@@ -354,7 +372,8 @@ class ManagersView(APIView):
                             data['manager'] = ManagerSerializer(User.objects.get(id=user)).data
                             return Response(data)
                         else:
-                            return JustMessage("User is not a manager in this chain!", status=status.HTTP_208_ALREADY_REPORTED)
+                            return JustMessage("User is not a manager in this chain!",
+                                               status=status.HTTP_208_ALREADY_REPORTED)
                     else:
                         return JustMessage("Chain is not found!", status=status.HTTP_404_NOT_FOUND)
                 elif request.headers['type'] == 'shop':
@@ -369,7 +388,8 @@ class ManagersView(APIView):
                             data['message'] = "Manager has been deleted!"
                             data['manager'] = ManagerSerializer(User.objects.get(id=user)).data
                             return Response(data)
-                        return JustMessage("User is not a manager in this shop!", status=status.HTTP_208_ALREADY_REPORTED)
+                        return JustMessage("User is not a manager in this shop!",
+                                           status=status.HTTP_208_ALREADY_REPORTED)
                     else:
                         return JustMessage("Shop is not found!", status=status.HTTP_404_NOT_FOUND)
                 else:
@@ -393,6 +413,11 @@ class ProductsView(APIView):
                     data['message'] = "This chain is not found!"
                     return Response(data, status=status.HTTP_404_NOT_FOUND)
                 products = products.filter(shop__in=products_in_chain_of_shops(chain_id))
+            if 'shop' in request.headers:
+                shop_id = int(request.headers['shop'])
+                if not Shop.objects.filter(id=shop_id).exists():
+                    return JustMessage("This shop is not found!", status=status.HTTP_404_NOT_FOUND)
+                products = products.filter(shop=Shop.objects.get(id=shop_id))
             if 'id' in request.headers:
                 product_id = int(request.headers['id'])
                 if not Product.objects.filter(id=product_id).exists():

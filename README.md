@@ -32,6 +32,21 @@
   token: <USER_TOKEN (type:str)>,
 }
 ```
+* ## Create an application token
+#### POST `/api/v1/create_app_token/`
+#### Body
+```yaml
+{
+  auth-token: <USER_TOKEN (type:str) (REQUIRED)>,
+  name: <UNIQUE_NAME (type:str) (REQUIRED)>,
+}
+```
+#### Response
+```yaml
+{
+  message: <MESSAGE (type:str)>,
+}
+```
 * ## Get shops around
 #### GET `/api/v1/shops_around/`
 #### Headers
