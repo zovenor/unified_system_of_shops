@@ -3,6 +3,7 @@
 ## REST API
 
 * [Get Token](#get-token)
+* [Cretae an application token](#create-an-application-token)
 * [Get shops](#get-shops)
 * [Create a shop](#create-a-shop)
 * [Delete a shop](#delete-a-shop)
