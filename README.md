@@ -19,10 +19,15 @@
 
 * ## Get Token
 #### POST `/api/v1/token/`
-#### Body:
+#### Headers
 ```yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+}
+```
+#### Body:
+```yaml
+  {
   username: <USERNAME (type:str) (REQUIRED)>,
   password: <PASSWORD (type:str) (REQUIRED)>,
 }
@@ -35,10 +40,15 @@
 ```
 * ## Create an application token
 #### POST `/api/v1/create_app_token/`
+#### Headers
+```yaml
+{
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
+}
+```
 #### Body
 ```yaml
 {
-  auth-token: <USER_TOKEN (type:str) (REQUIRED)>,
   name: <UNIQUE_NAME (type:str) (REQUIRED)>,
 }
 ```
@@ -53,15 +63,10 @@
 #### Headers
 ```yaml
 {
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
   lat: <LATITUDE (type:float) (REQUIRED)>,
   lng: <LONGTUDE (type:float) (REQUIRED)>,
   radius: <RADIUS (type:float) (km, default:0.5)>
-}
-```
-#### Body
-```yaml
-{
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
 }
 ```
 #### Response
@@ -89,14 +94,9 @@
 #### Headers
 ```yaml
 {
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
   chain: <CHAIN_OF_SHOPS_ID (type:int)>,
   id: <SHOP_ID (type:int)>,
-}
-```
-#### Body
-```yaml
-{
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
 }
 ```
 #### Response
@@ -123,11 +123,16 @@
 #### POST `/api/v1/shops/`
 #### Permissions
 You should be a manager of this shop chain
+#### Headers
+```yaml
+{
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
+}
+```
 #### Body
 ```yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
-  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
   chain:  <CHAIN_ID (type:int) (REQUIRED)>,
   lat: <LATITUDE (type:float) (REQUIRED)>,
   lng: <LONGTUDE (type:float) (REQUIRED)>,
@@ -156,13 +161,15 @@ You should be a manager of this shop chain
 You should be a manager of this shop chain
 #### Headers
 ```yaml
-  id: <SHOP_ID (type:int) (REQUIRED)>,
+{
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
+}
 ```
 #### Body
 ```yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
-  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  id: <SHOP_ID (type:int) (REQUIRED)>,
 }
 ```
 #### Response
@@ -177,13 +184,15 @@ You should be a manager of this shop chain
 You should be a manager of this shop chain
 #### Headers
 ```yaml
-  id: <SHOP_ID (type:int) (REQUIRED)>,
+{
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
+}
 ```
 #### Body
 ```yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
-  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  id: <SHOP_ID (type:int) (REQUIRED)>,
   chain: <CHAIN_ID (type:int)>,
   lat: <LATITUDE (type:float)>,
   lng: <LONGTUDE (type:float)>,
@@ -210,15 +219,10 @@ You should be a manager of this shop chain
 #### GET `/api/v1/managers/`
 #### Headers
 ```yaml
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
   type: <TYPE (type:str) ('chain' or 'shop') (REQUIRED)>
   id: <SHOP_ID (type:int) (REQUIRED)>,
-```
-#### Body
-```yaml
-{
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
-  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
-}
 ```
 #### Response
 ```yaml
@@ -242,14 +246,16 @@ You should be a manager of this shop chain
 You should be a manager of this shop or shop chain
 #### Headers
 ```yaml
-  type: <TYPE (type:str) ('chain' or 'shop') (REQUIRED)>
-  id: <SHOP_ID (type:int) (REQUIRED)>,
+{
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
+}
 ```
 #### Body
 ```yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
-  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  type: <TYPE (type:str) ('chain' or 'shop') (REQUIRED)>
+  id: <SHOP_ID (type:int) (REQUIRED)>,
   user: <USER_ID (type:int) (REQUIRED)>
 }
 ```
@@ -273,14 +279,16 @@ You should be a manager of this shop or shop chain
 You should be a manager of this shop or shop chain
 #### Headers
 ```yaml
-  type: <TYPE (type:str) ('chain' or 'shop') (REQUIRED)>
-  id: <SHOP_ID (type:int) (REQUIRED)>,
+{
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
+}
 ```
 #### Body
 ```yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
-  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  type: <TYPE (type:str) ('chain' or 'shop') (REQUIRED)>
+  id: <SHOP_ID (type:int) (REQUIRED)>,
   user: <USER_ID (type:int) (REQUIRED)>
 }
 ```
@@ -307,15 +315,15 @@ You should be a manager of this shop or shop chain
 #### Headers
 ```yaml
 {
-  chain: <CHAIN_ID (type:int)>,
-  shop: <SHOP_ID (type:int)>,
-  id: <PRODUCT_ID (type:int),
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
 }
 ```
 #### Body
 ```yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  chain: <CHAIN_ID (type:int)>,
+  shop: <SHOP_ID (type:int)>,
+  id: <PRODUCT_ID (type:int),
 }
 ```
 #### Response
@@ -343,14 +351,14 @@ You should be a manager of this shop or shop chain
 #### Headers
 ```yaml
 {
-  shop: <SHOP_ID (type:int) (REQUIRED)>,
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
 }
 ```
 #### Body
 ```yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>
-  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  shop: <SHOP_ID (type:int) (REQUIRED)>,
   name: <NAME (type:str) (REQUIRED)>,
   price: <PRICE (type:float) (REQUIRED)>,
   currecy: <CURRENCY (type:str) (REQUIRED)>,
@@ -377,11 +385,16 @@ You should be a manager of this shop or shop chain
 #### DELETE `/api/v1/products/`
 #### Permissions
 You should be a manager of this shop or shop chain
+#### Headers
+```yaml
+{
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
+}
+```
 #### Body
 ````yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
-  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
   id: <ID (type:str) (REQUIRED)>,
 }
 ````
@@ -398,19 +411,19 @@ You should be a manager of this shop or shop chain
 #### Headers
 ```yaml
 {
-  id: <ID (type:str) (REQUIRED)>,
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
 }
 ```
 #### Body
 ```yaml
 {
-    app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>
-    auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
-    name: <NAME (type:str),
-    price: <PRICE (type:float)>,
-    currecy: <CURRENCY (type:str)>,
-    count: <COUNT (type:int)>,
-    code: <CODE (type:int)>,
+  id: <ID (type:str) (REQUIRED)>,
+  name: <NAME (type:str),
+  price: <PRICE (type:float)>,
+  currecy: <CURRENCY (type:str)>,
+  count: <COUNT (type:int)>,
+  code: <CODE (type:int)>,
 }
 ```
 #### Response
@@ -434,14 +447,14 @@ You should be a manager of this shop or shop chain
 #### Header
 ```yaml
 {
-  id: <ID (type:int) (REQUIRED)>,
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  Auth-Token: <USER_TOKEN (type:str) (REQUIRED)>,
 }
 ```
 #### Body
 ```yaml
 {
-  app_token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
-  auth_token: <USER_TOKEN (type:str) (REQUIRED)>,
+  id: <ID (type:int) (REQUIRED)>,
   count: <COUNT_TO_ADD (type:int) (REQUIRED)>,
 }
 ```
