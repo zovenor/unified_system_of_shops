@@ -545,3 +545,23 @@ class AddCountProductView(APIView):
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
+
+
+class ChainsView(APIView):
+    @app_permissions
+    def get(self, request):
+        try:
+            chains = ShopChain.objects.all()
+            data = {
+                'chains': ShopChainSerializer(chains, many=True).data
+            }
+            if 'id' in request.headers:
+                if chains.filter(id=request.headers['id']).exists():
+                    chains = chains.filter(id=request.headers['id'])
+                    data['chains'] = ShopChainSerializer(chains)
+                else:
+                    return JustMessage('This chain is not found!', status=status.HTTP_404_NOT_FOUND)
+            return Response(data)
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()

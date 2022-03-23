@@ -4,6 +4,7 @@
 
 * [Get Token](#get-token)
 * [Create an application token](#create-an-application-token)
+* [Get chains](#get-chains)
 * [Get shops](#get-shops)
 * [Create a shop](#create-a-shop)
 * [Delete a shop](#delete-a-shop)
@@ -87,6 +88,35 @@
     }
     ...
   ]
+}
+```
+* ## Get chains
+#### GET `/api/v1/chains/`
+#### Headers
+```yaml
+{
+  App-Token: <APPLICATION_TOKEN (type:str) (REQUIRED)>,
+  id: <CHAIN_ID (type:int)>,
+}
+```
+#### Response
+```yaml
+{
+  chains: [
+    ...
+    {
+      id: <ID (type:int)>,
+      name: <NAME (type:str)>,
+      unique_name: <UNIQUE_NAME (type:str)>,
+      description: <DESCRIPTION (type:str)>,
+      managers: [
+        ...
+        <MANAGER_ID (type:int)>,
+        ...
+      ],
+    }
+    ...
+  ],
 }
 ```
 * ## Get shops
