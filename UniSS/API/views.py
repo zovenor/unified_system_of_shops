@@ -135,7 +135,7 @@ class ShopsView(APIView):
                 else:
                     return JustMessage("This shop does not exists!", status=status.HTTP_404_NOT_FOUND)
             if shops:
-                data['shops'] = data['shops'].data
+                data['shops'] = data['shops']
                 return Response(data)
             else:
                 return JustMessage("Shop list is empty!", status=status.HTTP_204_NO_CONTENT)
@@ -561,6 +561,25 @@ class ChainsView(APIView):
                     data['chains'] = ShopChainSerializer(chains)
                 else:
                     return JustMessage('This chain is not found!', status=status.HTTP_404_NOT_FOUND)
+            return Response(data)
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
+
+
+class UserView(APIView):
+    @app_permissions
+    def get(self, request):
+        try:
+            if 'Auth-Token' not in request.headers:
+                return JustMessage('Auth-Token is empty!', status=status.HTTP_400_BAD_REQUEST)
+            if not Token.objects.filter(key=request.headers['Auth-Token']).exists():
+                return JustMessage('Wrong token!', status=status.HTTP_401_UNAUTHORIZED)
+            auth_token = request.headers['Auth-Token']
+            user = Token.objects.get(key=auth_token).user
+            data = {
+                'user': UserSerializer(user).data,
+            }
             return Response(data)
         except Exception as e:
             return exceptionResponse(e)

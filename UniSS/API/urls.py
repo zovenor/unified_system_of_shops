@@ -11,4 +11,5 @@ urlpatterns = [
     path('products/', views.ProductsView.as_view()),
     path('products/add_count/', views.AddCountProductView.as_view()),
     path('chains/', views.ChainsView.as_view()),
+    path('user/', views.UserView.as_view()),
 ]
