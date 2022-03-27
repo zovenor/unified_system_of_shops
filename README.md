@@ -1,5 +1,7 @@
 # Unified system of shops
 
+# There is a [mobile app](https://github.com/zovenor/UniSS_mobile_app) for this system
+
 ## REST API
 
 * [Get Token](#get-token)
