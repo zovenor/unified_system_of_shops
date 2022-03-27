@@ -117,7 +117,7 @@ class ShopsView(APIView):
         try:
             data = {}
             shops = Shop.objects.all()
-            data['shops'] = ShopSerializer(shops, many=True)
+            data['shops'] = ShopSerializer(shops, many=True).data
             if 'chain' in request.headers:
                 h_chain = int(request.headers['chain'])
                 if shops.filter(chain=h_chain).exists():
@@ -131,7 +131,9 @@ class ShopsView(APIView):
                 h_id = int(request.headers['id'])
                 if shops.filter(id=h_id).exists():
                     shops = shops.get(id=h_id)
+                    print(shops)
                     data['shops'] = ShopSerializer(shops).data
+                    return Response(data)
                 else:
                     return JustMessage("This shop does not exists!", status=status.HTTP_404_NOT_FOUND)
             if shops:
@@ -556,9 +558,10 @@ class ChainsView(APIView):
                 'chains': ShopChainSerializer(chains, many=True).data
             }
             if 'id' in request.headers:
-                if chains.filter(id=request.headers['id']).exists():
-                    chains = chains.filter(id=request.headers['id'])
-                    data['chains'] = ShopChainSerializer(chains)
+                if chains.filter(id=int(request.headers['id'])).exists():
+                    chains = chains.get(id=int(request.headers['id']))
+                    data['chains'] = ShopChainSerializer(chains).data
+                    return Response(data)
                 else:
                     return JustMessage('This chain is not found!', status=status.HTTP_404_NOT_FOUND)
             return Response(data)
@@ -581,6 +584,32 @@ class UserView(APIView):
                 'user': UserSerializer(user).data,
             }
             return Response(data)
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
+
+
+class GetShopNameView(APIView):
+    @app_permissions
+    def get(self, request):
+        try:
+            data = {}
+            if 'product' not in request.headers and 'shop' not in request.headers:
+                return JustMessage('Product or shop id is empty!', status=status.HTTP_400_BAD_REQUEST)
+            if 'product' in request.headers:
+                product_id = int(request.headers['product'])
+                if Product.objects.filter(id=product_id).exists():
+                    data['shop_name'] = Product.objects.get(id=product_id).shop.chain.name
+                    return Response(data)
+                else:
+                    return JustMessage('This product is not found!')
+            if 'shop' in request.headers:
+                shop_id = int(request.headers['shop'])
+                if Shop.objects.filter(id=shop_id).exists():
+                    data['shop_name'] = Shop.objects.get(id=shop_id).chain.name
+                    return Response(data)
+                else:
+                    return JustMessage('This shop is not found!')
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
