@@ -136,6 +136,8 @@ class ShopsView(APIView):
                     return Response(data)
                 else:
                     return JustMessage("This shop does not exists!", status=status.HTTP_404_NOT_FOUND)
+            if 'find' in request.GET:
+                shops = shops.filter(chain__in=ShopChain.objects.filter(name__icontains=request.GET['find']))
             if shops:
                 data['shops'] = data['shops']
                 return Response(data)
