@@ -604,14 +604,31 @@ class GetShopNameView(APIView):
                     data['shop_name'] = Product.objects.get(id=product_id).shop.chain.name
                     return Response(data)
                 else:
-                    return JustMessage('This product is not found!')
+                    return JustMessage('This product is not found!', status=status.HTTP_404_NOT_FOUND)
             if 'shop' in request.headers:
                 shop_id = int(request.headers['shop'])
                 if Shop.objects.filter(id=shop_id).exists():
                     data['shop_name'] = Shop.objects.get(id=shop_id).chain.name
                     return Response(data)
                 else:
-                    return JustMessage('This shop is not found!')
+                    return JustMessage('This shop is not found!', status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
+
+
+class GetProductByCodeView(APIView):
+    @app_permissions
+    def get(self, request):
+        try:
+            data = {}
+            if 'code' not in request.headers:
+                return JustMessage('Code is empty!', status=status.HTTP_400_BAD_REQUEST)
+            code = int(request.headers['code'])
+            if not Product.objects.filter(code=code).exists():
+                return JustMessage('Product not found!', status=status.HTTP_404_NOT_FOUND)
+            data['product'] = ProductSerializer(Product.objects.get(code=code)).data
+            return Response(data)
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
