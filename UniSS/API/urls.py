@@ -14,4 +14,5 @@ urlpatterns = [
     path('user/', views.UserView.as_view()),
     path('get_shop_name/', views.GetShopNameView.as_view()),
     path('get_product_by_code/', views.GetProductByCodeView.as_view()),
+    path('register/', views.RegisterUserView.as_view()),
 ]

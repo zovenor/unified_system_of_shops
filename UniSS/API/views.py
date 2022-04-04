@@ -632,3 +632,27 @@ class GetProductByCodeView(APIView):
         except Exception as e:
             return exceptionResponse(e)
         return defaultResponse()
+
+
+class RegisterUserView(APIView):
+    @app_permissions
+    def post(self, request):
+        try:
+            print(request.data)
+            if 'username' not in request.data:
+                return JustMessage('Username is empty!', status=status.HTTP_400_BAD_REQUEST)
+            if 'password' not in request.data:
+                return JustMessage('Password is empty!', status=status.HTTP_400_BAD_REQUEST)
+            if 'email' not in request.data:
+                return JustMessage('Email is empty!', status=status.HTTP_400_BAD_REQUEST)
+            username = request.data['username']
+            password = request.data['password']
+            email = request.data['email']
+            User.objects.create_user(username=username, password=password, email=email)
+            data = {
+                'message': 'User has been successfully created!'
+            }
+            return Response(data)
+        except Exception as e:
+            return exceptionResponse(e)
+        return defaultResponse()
