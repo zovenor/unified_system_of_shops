@@ -1,3 +1,0 @@
-Django==4.1
-django_location_field==2.1.0
-djangorestframework==3.13.1
